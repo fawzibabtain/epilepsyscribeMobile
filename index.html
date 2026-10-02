@@ -10,10 +10,10 @@
 
   <style>
     :root {
-      --primary: #0f172a; /* Darker navy to match the image */
+      --primary: #0f172a; 
       --primary-light: #1e293b;
-      --accent-epilepsy: #1e3a8a; /* Dark blue accent for epilepsy card */
-      --accent-neuro: #0f766e; /* Teal accent for neuro/report cards */
+      --accent-epilepsy: #1e3a8a; 
+      --accent-neuro: #0f766e; 
       --success: #059669;
       --warning: #ea580c;
       --danger: #dc2626;
@@ -51,14 +51,13 @@
     }
 
     /* -------------------------------------------
-       LANDING PAGE STYLES (Redesigned)
+       LANDING PAGE STYLES
     -------------------------------------------- */
     #landing-view {
       display: flex;
       flex-direction: column;
       height: 100%;
       width: 100%;
-      /* Faint background pattern mimicking the image */
       background-color: #f1f5f9;
       background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
       background-size: 24px 24px;
@@ -77,7 +76,7 @@
       align-items: center;
       width: 100%;
       max-width: 600px;
-      flex: 1; /* Pushes bottom nav down */
+      flex: 1; 
     }
 
     .landing-header {
@@ -128,7 +127,6 @@
     }
     .nav-card:active { transform: scale(0.98); }
 
-    /* Left accent lines */
     .nav-card::before {
       content: '';
       position: absolute;
@@ -155,20 +153,77 @@
     .nav-card-text h3 { font-size: 1.05rem; color: var(--text-main); font-weight: 600; margin-bottom: 2px; }
     .nav-card-text p { color: var(--text-muted); font-size: 0.8rem; line-height: 1.25; }
 
+    /* Powered by & Stats styling */
     .powered-by {
       margin-top: auto;
       margin-bottom: 20px;
-      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
       color: #94a3b8;
-      font-weight: 500;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    
+    .stats-container {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: #e2e8f0;
+      padding: 6px 16px;
+      border-radius: 20px;
+    }
+    .more-stats {
+      color: var(--accent-neuro);
+      cursor: help;
+      position: relative;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .more-stats .tooltip {
+      visibility: hidden;
+      width: 200px;
+      background-color: var(--text-main);
+      color: #fff;
       text-align: center;
+      border-radius: 8px;
+      padding: 12px;
+      position: absolute;
+      z-index: 10;
+      bottom: 140%; 
+      left: 50%;
+      margin-left: -100px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.8rem;
+      font-weight: normal;
+      box-shadow: var(--shadow-hover);
+      letter-spacing: 0;
+    }
+    .more-stats .tooltip::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: var(--text-main) transparent transparent transparent;
+    }
+    .more-stats:hover .tooltip, .more-stats:active .tooltip {
+      visibility: visible;
+      opacity: 1;
     }
 
-    /* Landing Bottom Navigation */
     .landing-bottom-nav {
       display: flex;
       justify-content: center;
-      gap: 80px; /* Spacing between Home and Refresh */
+      gap: 80px; 
       width: 100%;
       padding-bottom: 10px;
     }
@@ -248,7 +303,8 @@
     .panel-note .rich-text-box { border: 1px solid #86efac; background-color: #ffffff; }
     .panel-note .rich-text-box:focus { outline: none; border-color: var(--success); }
     
-    .rich-text-box ul { margin-left: 20px; margin-bottom: 10px; }
+    /* Strict list spacing fix */
+    .rich-text-box ul, .rich-text-box ol { margin-left: 20px; margin-bottom: 0; margin-top: 0; }
     .rich-text-box li { margin-bottom: 4px; }
     .rich-text-box[contenteditable]:empty:before { content: attr(data-placeholder); color: #94a3b8; }
 
@@ -358,7 +414,19 @@
       </div>
     </div>
 
-    <div class="powered-by">Powered by Open AI</div>
+    <div class="powered-by">
+      Powered by Open AI
+      <div class="stats-container">
+        <span id="gen-count">Loading stats...</span> 
+        <span class="more-stats">(more info)
+          <div class="tooltip">
+            <b>Total App Usage</b><br>
+            Tokens Processed: <span id="token-count">0</span><br>
+            Estimated Cost: $<span id="cost-count">0.000</span>
+          </div>
+        </span>
+      </div>
+    </div>
     
     <div class="landing-bottom-nav">
       <button class="nav-icon-btn" onclick="window.scrollTo(0,0)">
@@ -382,7 +450,7 @@
       <div class="editor-title" id="current-workspace-title">Workspace</div>
       <div class="sync-status">
         <div class="status-dot" id="sync-dot"></div>
-        <span id="sync-text" style="display:none;"></span> <!-- Hidden text to save space on mobile -->
+        <span id="sync-text" style="display:none;"></span> 
         <span class="badge" id="last-updated">Last sync: --:--</span>
       </div>
     </div>
@@ -440,7 +508,6 @@
     </div>
   </div>
 
-  <!-- Subpage Floating Home Button -->
   <button class="fab-home" onclick="closeWorkspace()">
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l8 6v12h-5v-7h-6v7H4V9l8-6z"/></svg>
   </button>
@@ -499,67 +566,85 @@
     return OPENROUTER_API_KEY;
   }
 
+  // HISTORICAL BASELINE OFFSET 
+  const BASELINE_REQUESTS = 91; 
+  const BASELINE_TOKENS = 115000;
+  const BASELINE_COST = 0.15;
+
   // 2. Dynamic Template Generator
   function getTemplate(type) {
     const todayStr = new Date().toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' });
 
     const templates = {
-      neurology_note: `You are an expert neurologist documenting a clinic note for the EHR. Take the raw dictation and structure it strictly into the sections below. Write in a highly professional, detailed, scientifically written narrative and descriptive medical style suitable for world-class institutions (e.g., Mayo Clinic, Cleveland Clinic). Preserve all clinical details provided. Return ONLY raw HTML. Use <b> tags for main headings and double line breaks (<br><br>) between sections. Format strictly as follows:
-<b>CHIEF COMPLAINT:</b> (Keep concise under 100 words. Include age, sex, primary reason for visit.)<br><br>
-<b>HISTORY:</b> (Use a detailed, scientifically written narrative and descriptive style to summarize clinical history. Divide into 2 to 3 distinct paragraphs using <br><br>.)<br><br>
-<b>NEUROLOGICAL EXAMINATION:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail any abnormalities.]<br><br>
-<b>DIAGNOSIS:</b> [Content]<br><br>
-<b>PLAN:</b><br>[Use an HTML bulleted list (<ul><li>...</li></ul>) for the plans. Ensure a narrative and descriptive style for each bullet point. For all medications mentioned, use the generic name followed by the Saudi Arabian market brand name in parentheses, and explicitly include the dose.]`,
-      
-      epilepsy_note: `You are an expert epileptologist documenting an outpatient clinic note for the EHR. Take the raw dictation and structure it strictly into this format. Write in a highly professional, detailed, narrative, and scientific medical style suitable for world-class institutions. Preserve all clinical details provided. Return ONLY raw HTML. Use <b> tags for subheadings. Format strictly as follows:
-<b>AGE AND BASIC INFO:</b> [Content]<br><br>
-<b>SEIZURE DESCRIPTION:</b><br>
-<b>AURA:</b> [Content]<br>
-<b>SEIZURE:</b> [Detailed narrative style as described. DO NOT mention seizure frequency, longest seizure freedom, EEG, or MRI findings here.]<br>
-<b>SEIZURE FREQUENCY:</b> [Content]<br>
-<b>LONGEST SEIZURE FREEDOM:</b> [Content]<br><br>
-<b>RISK FACTORS:</b> [Content]<br>
-<b>CURRENT MEDICATIONS:</b> [List using generic name (Saudi Arabian brand name in parentheses), and explicitly include the dose, e.g., Levetiracetam (Keppra) 500 mg BID]<br>
-<b>PREVIOUS MEDICATIONS:</b> [List using generic name (Saudi Arabian brand name in parentheses), and explicitly include the dose]<br>
-<b>NEUROLOGICAL EXAMINATION:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail any abnormalities.]<br>
-<b>EEG FINDINGS:</b> [Content]<br>
-<b>MRI FINDINGS:</b> [Content]<br><br>
-<b>DIAGNOSIS:</b> [Content]<br>
-<b>2025 CLASSIFICATION:</b> [Apply the basic 2025 classification. RULES: If seizures evolve to bilateral tonic-clonic, ONLY state "focal to bilateral tonic clonic seizures" (do not state intact/impaired consciousness). If focal only without evolution: state either "impaired consciousness" (if dictation mentions unresponsive, no recall, no recollection, impaired awareness, or similar) OR "intact consciousness" (if not). Include "with or without observable manifestations" appropriately.]<br><br>
-<b>TREATMENT PLAN:</b><br>[Use an HTML bulleted list (<ul><li>...</li></ul>) for the plans. Ensure a narrative and descriptive style for each bullet point. Use generic (Brand) format with dose for new meds.]`,
-
-      neurology_report: `You are an expert neurologist drafting a formal medical report. Take the raw dictation and structure it strictly into the sections below. Write in a highly professional, detailed, narrative, and scientific medical style suitable for world-class institutions (e.g., Mayo Clinic, Cleveland Clinic). Preserve all clinical details provided. Return ONLY raw HTML. Use <b> tags for main headings. Add double line breaks (<br><br>) between sections. Format strictly as follows:
+      neurology_note: `You are an expert neurologist documenting a clinic note for the EHR. Take the raw dictation and structure it strictly into the sections below. Write in a highly professional, detailed, scientifically written narrative and descriptive medical style suitable for world-class institutions (e.g., Mayo Clinic, Cleveland Clinic). Preserve all clinical details provided. Return ONLY raw HTML. Use <b> tags for main headings. Capitalize only the first letter of the headings. Leave strictly one blank line between each section using double line breaks (<br><br>). Format strictly as follows:
+<b>Chief complaint:</b> (Keep concise under 100 words. Include age, sex, primary reason for visit.)<br><br>
+<b>History:</b> (Use a detailed, scientifically written narrative and descriptive style to summarize clinical history. Divide into 2 to 3 distinct paragraphs using <br><br>.)<br><br>
+<b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail any abnormalities.]<br><br>
 <b>Diagnosis:</b> [Content]<br><br>
-<b>Medications:</b> [Use an HTML numbered list if >1. For all medications, use the generic name followed by the Saudi Arabian market brand name in parentheses, and explicitly include the dose for each.]<br><br>
+<b>Plan:</b><br>[Use an HTML bulleted list (<ul><li>...</li></ul>) for the plans. Ensure a narrative and descriptive style for each bullet point. For all medications mentioned, use the generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose.]`,
+      
+      epilepsy_note: `You are an expert epileptologist documenting an outpatient clinic note for the EHR. Take the raw dictation and structure it strictly into this format. Write in a highly professional, detailed, narrative, and scientific medical style suitable for world-class institutions. Preserve all clinical details provided. Return ONLY raw HTML. Use <b> tags for subheadings. Capitalize only the first letter of the headings. Leave strictly one blank line between each section using double line breaks (<br><br>). Format strictly as follows:
+<b>Age and basic info:</b> [Content]<br><br>
+<b>Seizure description:</b><br>
+<b>Aura:</b> [Content]<br>
+<b>Seizure:</b> [Detailed narrative style as described. DO NOT mention seizure frequency, longest seizure freedom, EEG, or MRI findings here.]<br>
+<b>Seizure frequency:</b> [Content]<br>
+<b>Longest seizure freedom:</b> [Content]<br><br>
+<b>Risk factors:</b> [Content]<br>
+<b>Current medications:</b> [List using generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose, e.g., Levetiracetam (Keppra) 500 mg BID]<br>
+<b>Previous medications:</b> [List using generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose]<br>
+<b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail any abnormalities.]<br>
+<b>EEG findings:</b> [Content]<br>
+<b>MRI findings:</b> [Content]<br><br>
+<b>Diagnosis:</b> [Provide localization-related epilepsy diagnosis (e.g., Left frontal lobe epilepsy). If drug-resistant or refractory, strictly start the diagnosis by mentioning this (e.g., Drug-resistant left frontal lobe epilepsy).]<br>
+<b>2025 classification:</b> [Apply the basic 2025 classification. RULES: If seizures evolve to bilateral tonic-clonic, ONLY state "focal to bilateral tonic clonic seizures". If focal only without evolution: state either "impaired consciousness" or "intact consciousness". Include "with or without observable manifestations" appropriately.]<br><br>
+<b>Treatment plan:</b><br>[Use an HTML bulleted list (<ul><li>...</li></ul>) for the plans. Ensure a narrative and descriptive style for each bullet point. For all medications, use generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose.]`,
+
+      neurology_report: `You are an expert neurologist drafting a formal medical report. Take the raw dictation and structure it strictly into the sections below. Write in a highly professional, detailed, narrative, and scientific medical style suitable for world-class institutions (e.g., Mayo Clinic, Cleveland Clinic). Preserve all clinical details provided. Return ONLY raw HTML. Use <b> tags for main headings. Capitalize only the first letter of the headings. 
+
+Format strictly as follows:
+<b>Diagnosis:</b> [Content]<br><br>
+<b>Medications:</b> [Use an HTML numbered list if >1. For all medications, use the generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose for each.]<br>
 <b>Brief history:</b> [Detailed narrative style reflecting all provided information. DO NOT mention any investigations here. Reserve all lab, imaging, and EEG results strictly for the Investigations section to prevent redundancy.]<br><br>
 <b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail any abnormalities.]<br><br>
 <b>Investigations:</b> [Content - Do not include physical examination here. Compile all mentioned investigations here.]<br><br>
-<b>Treatment plans:</b><br>[Use an HTML bulleted list (<ul><li>...</li></ul>) for easy readability. Use generic (Brand) format with dose for meds.]<br>
-This medical report was given upon the patient's request and should not be considered an official referral.`,
+<b>Treatment plans:</b><br>[Use an HTML bulleted list (<ul><li>...</li></ul>) for easy readability. For all medications, use generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose.]<br>
+This medical report was given upon the patient's request and should not be considered an official referral.
 
-      epilepsy_report: `You are an expert epileptologist drafting a formal medical report. Take the raw dictation and structure it strictly into the sections below. Write in a highly professional, detailed, narrative, and scientific medical style suitable for world-class institutions (e.g., Mayo Clinic, Cleveland Clinic). Preserve all clinical details provided. Return ONLY raw HTML. Use <b> tags for main headings. Add double line breaks (<br><br>) between sections. Format strictly as follows:
-<b>Diagnosis:</b> [Content]<br>
-<b>2025 CLASSIFICATION:</b> [Apply the basic 2025 classification. RULES: If seizures evolve to bilateral tonic-clonic, ONLY state "focal to bilateral tonic clonic seizures" (do not state intact/impaired consciousness). If focal only without evolution: state either "impaired consciousness" (if dictation mentions unresponsive, no recall, no recollection, impaired awareness, or similar) OR "intact consciousness" (if not). Include "with or without observable manifestations" appropriately.]<br><br>
-<b>Medications:</b> [Use an HTML numbered list if >1. For all medications, use the generic name followed by the Saudi Arabian market brand name in parentheses, and explicitly include the dose for each, e.g., Levetiracetam (Keppra) 500 mg BID]<br><br>
+MANDATORY INSTRUCTION: Because HTML lists automatically break lines, you MUST use exactly one single <br> after the Medications list and the Treatment plans list to ensure there is exactly one empty space between sections. Do NOT use <br><br> after lists. You MUST include the exact closing statement above ("This medical report was given upon the patient's request and should not be considered an official referral.") as the final line of the document.`,
+
+      epilepsy_report: `You are an expert epileptologist drafting a formal medical report. Take the raw dictation and structure it strictly into the sections below. Write in a highly professional, detailed, narrative, and scientific medical style suitable for world-class institutions (e.g., Mayo Clinic, Cleveland Clinic). Preserve all clinical details provided. Return ONLY raw HTML. Use <b> tags for main headings. Capitalize only the first letter of the headings. 
+
+Format strictly as follows:
+<b>Diagnosis:</b> [Provide localization-related epilepsy diagnosis (e.g., Left frontal lobe epilepsy). If drug-resistant or refractory, strictly start the diagnosis by mentioning this (e.g., Drug-resistant left frontal lobe epilepsy).]<br>
+<b>2025 classification:</b> [Apply the basic 2025 classification. RULES: If seizures evolve to bilateral tonic-clonic, ONLY state "focal to bilateral tonic clonic seizures". If focal only without evolution: state either "impaired consciousness" or "intact consciousness". Include "with or without observable manifestations" appropriately.]<br><br>
+<b>Medications:</b> [Use an HTML numbered list if >1. For all medications, use the generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose for each, e.g., Levetiracetam (Keppra) 500 mg BID]<br>
 <b>Brief history:</b> [Detailed narrative style reflecting all provided information. DO NOT mention any investigations (like EEG, MRI, PET) here. Reserve all investigation results strictly for the Investigations section to prevent redundancy.]<br><br>
 <b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail any abnormalities.]<br><br>
 <b>Investigations:</b> [Content - Do not include physical examination here. Compile all mentioned investigations here.]<br><br>
-<b>Treatment plans:</b><br>[Use an HTML bulleted list (<ul><li>...</li></ul>) for easy readability. Use generic (Brand) format with dose for meds.]<br>
-This medical report was given upon the patient's request and should not be considered an official referral.`,
+<b>Treatment plans:</b><br>[Use an HTML bulleted list (<ul><li>...</li></ul>) for easy readability. For all medications, use generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose.]<br>
+This medical report was given upon the patient's request and should not be considered an official referral.
+
+MANDATORY INSTRUCTION: Because HTML lists automatically break lines, you MUST use exactly one single <br> after the Medications list and the Treatment plans list to ensure there is exactly one empty space between sections. Do NOT use <br><br> after lists. You MUST include the exact closing statement above ("This medical report was given upon the patient's request and should not be considered an official referral.") as the final line of the document.`,
 
       epilepsy_referral: `You are an expert epileptologist drafting an official Epilepsy Referral Report. Maintain a professional tone, focusing on delivering the medical report with precision, academic rigor, and comprehensive detail suitable for world-class institutions (e.g., Cleveland Clinic, Mayo Clinic). 
 
 Use detailed narrative and scientific language. Preserve all clinical nuances dictated. Do not make it too chopped or clumsy. If there are additional notes or remarks in the dictation, ensure they are included entirely under the 'Brief history' section. Write the brief history in at least 2 paragraphs.
 
-Return ONLY raw HTML. Use <b> tags for headings. Format strictly as follows:
+Return ONLY raw HTML. Use <b> tags for headings. Capitalize only the first letter of the headings. 
+
+Format strictly as follows:
 <b>Date of a report:</b> ${todayStr}<br><br>
-<b>Diagnosis:</b> [Use a numbered list if >1. Apply the basic 2025 classification for each. RULES: If focal evolves to bilateral tonic-clonic, ONLY state "focal to bilateral tonic clonic seizures". If focal only without evolution: state "impaired consciousness" (if dictation implies unresponsiveness, no recall, etc.) or "intact consciousness" (if not). Include "with/without observable manifestations" as appropriate.]<br><br>
-<b>Medications:</b> [Use a numbered list if >1. For all medications, use the generic name followed by the Saudi Arabian market brand name in parentheses, and explicitly include the dose for each, e.g., Levetiracetam (Keppra) 500 mg BID]<br><br>
+<b>Diagnosis:</b> [Use a numbered list if >1. Provide localization-related epilepsy diagnosis (e.g., Left frontal lobe epilepsy). If drug-resistant or refractory, strictly start the diagnosis by mentioning this (e.g., Drug-resistant left frontal lobe epilepsy).]<br>
+<b>2025 classification:</b> [Apply the basic 2025 classification. RULES: If seizures evolve to bilateral tonic-clonic, ONLY state "focal to bilateral tonic clonic seizures". If focal only without evolution: state either "impaired consciousness" or "intact consciousness". Include "with or without observable manifestations" appropriately.]<br><br>
+<b>Medications:</b> [Use a numbered list if >1. For all medications, use the generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose for each, e.g., Levetiracetam (Keppra) 500 mg BID]<br>
 <b>Brief history:</b> [Detailed narrative style, starting with patient demographics and comprehensive description of the history. Use one or two paragraphs here. Include all additional notes in this section. DO NOT mention any investigations (like EEG, MRI, PET) here. Reserve all investigation results strictly for the Epilepsy investigations section to prevent redundancy.]<br><br>
 <b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail abnormalities.]<br><br>
 <b>Epilepsy investigations:</b> [Content - Compile all mentioned investigations here. Do not include physical examination.]<br><br>
-<b>Recommendations and plan:</b><br>[Use a narrative style in bullet points (<ul><li>...</li></ul>). YOU MUST explicitly indicate the need for a referral to a comprehensive epilepsy center for epilepsy surgery evaluation, which should include admission to the Epilepsy Monitoring Unit (EMU), and further pre-epilepsy evaluation that may include a PET scan. Use generic (Brand) format with dose for meds.]<br>
-This medical evaluation was given upon the patient's request.`
+<b>Recommendations and plan:</b><br>[Use a detailed narrative paragraph style. DO NOT use bullet points. YOU MUST explicitly indicate the need for a referral to a comprehensive epilepsy center for epilepsy surgery evaluation, which should include admission to the Epilepsy Monitoring Unit (EMU), and further pre-epilepsy evaluation that may include a PET scan. For all medications mentioned, use generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose.]<br><br>
+This medical report was given upon the patient's request.
+
+MANDATORY INSTRUCTION: Because HTML lists automatically break lines, you MUST use exactly one single <br> after the Medications list to ensure there is exactly one empty space between sections. You MUST leave exactly one blank line (using <br><br>) immediately following the recommendations paragraph, and then write the exact closing statement ("This medical report was given upon the patient's request.") on its own line as the final text in the document.`
     };
 
     return templates[type];
@@ -626,8 +711,58 @@ This medical evaluation was given upon the patient's request.`
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
     updateSyncStatus(true);
+    loadStats();
   } catch (err) {
     updateSyncStatus(false);
+  }
+
+  async function loadStats() {
+    if (!db) return;
+    try {
+      const doc = await db.collection("scribe_stats").doc("global").get();
+      
+      let dbReq = 0, dbTokens = 0, dbCost = 0;
+      if (doc.exists) {
+        const data = doc.data();
+        dbReq = data.total_requests || 0;
+        dbTokens = data.total_tokens || 0;
+        dbCost = data.total_cost || 0;
+      }
+      
+      const totalReq = dbReq + BASELINE_REQUESTS;
+      const totalTokens = dbTokens + BASELINE_TOKENS;
+      const totalCost = dbCost + BASELINE_COST;
+
+      document.getElementById("gen-count").innerText = `${totalReq} notes generated`;
+      document.getElementById("token-count").innerText = totalTokens.toLocaleString();
+      document.getElementById("cost-count").innerText = totalCost.toFixed(3);
+      
+    } catch(e) {
+      document.getElementById("gen-count").innerText = `Stats unavailable`;
+    }
+  }
+
+  async function updateUsageStats(usageData) {
+    if (!db || !usageData) return;
+    
+    const pTokens = usageData.prompt_tokens || 0;
+    const cTokens = usageData.completion_tokens || 0;
+    const tTokens = usageData.total_tokens || 0;
+    
+    const cost = (pTokens * 0.15 / 1000000) + (cTokens * 0.60 / 1000000);
+
+    try {
+      const statsRef = db.collection("scribe_stats").doc("global");
+      await statsRef.set({
+        total_requests: firebase.firestore.FieldValue.increment(1),
+        total_tokens: firebase.firestore.FieldValue.increment(tTokens),
+        total_cost: firebase.firestore.FieldValue.increment(cost)
+      }, { merge: true });
+      
+      loadStats();
+    } catch (e) {
+      console.error("Error updating stats", e);
+    }
   }
 
   if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -718,7 +853,7 @@ This medical evaluation was given upon the patient's request.`
             "X-Title": "KFSHRC Clinic Note Hub"
           },
           body: JSON.stringify({ 
-            model: "openai/gpt-4o-mini",
+            model: "openai/gpt-4o-mini", // STRICTLY openai/gpt-4o-mini
             messages: [
               { role: "system", content: instructions },
               { role: "user", content: `RAW DICTATION TEXT TO FORMAT:\n"""\n${rawText}\n"""` }
@@ -733,6 +868,8 @@ This medical evaluation was given upon the patient's request.`
           formattedHtml = formattedHtml.replace(/```html\n?/g, '').replace(/```\n?/g, '');
           document.getElementById('formatted-note').innerHTML = formattedHtml;
           saveToCloud(formattedHtml, rawText);
+          
+          if (data.usage) { updateUsageStats(data.usage); }
           
           document.getElementById('main-grid').scrollBy({ top: 400, behavior: 'smooth' });
           break; 
