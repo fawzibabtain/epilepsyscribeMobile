@@ -132,14 +132,6 @@
     .nav-card h3 { font-size: 1.4rem; color: var(--text-main); line-height: 1.2; }
     .nav-card p { color: var(--text-muted); font-size: 0.9rem; }
 
-    .powered-by {
-      margin-top: 50px;
-      font-size: 0.9rem;
-      color: #94a3b8;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-    }
-
     /* -------------------------------------------
        EDITOR VIEW STYLES (Pinned top, scrolling body)
     -------------------------------------------- */
@@ -304,9 +296,19 @@
        MOBILE RESPONSIVENESS (The Authentic App Layout)
     ======================================================== */
     @media (max-width: 900px) {
-      .landing-title { font-size: 2.2rem; }
-      .card-grid { grid-template-columns: 1fr; }
+      /* Condensed Landing Page for iPhone 15 Pro */
+      #landing-view { padding: 16px 12px; }
+      .landing-header { margin-bottom: 16px; }
+      .landing-title { font-size: 1.8rem; margin-bottom: 4px; }
+      .landing-header h2 { font-size: 1rem; margin-bottom: 4px; }
+      .landing-header p { font-size: 0.85rem; }
+      
+      .card-grid { grid-template-columns: 1fr; gap: 12px; }
+      .nav-card { padding: 16px 12px; gap: 6px; }
+      .nav-card h3 { font-size: 1.15rem; }
+      .nav-card p { font-size: 0.85rem; margin: 0; line-height: 1.3; }
 
+      /* Editor Adjustments */
       .editor-header { flex-direction: column; align-items: stretch; }
       .header-left { justify-content: space-between; }
       .sync-status { justify-content: space-between; }
@@ -360,7 +362,6 @@
         <p>Formal patient-requested reports and comprehensive epilepsy center referrals.</p>
       </div>
     </div>
-    <div class="powered-by">Powered by Open AI & OpenRouter</div>
   </div>
 </div>
 
