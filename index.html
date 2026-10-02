@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- Added minimum-scale=1.0 and viewport-fit=cover to heavily restrict zooming and fill the screen -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Clinic Note Creator | KFSHRC Jeddah</title>
   
@@ -28,7 +27,6 @@
       --shadow-card: 0 10px 30px rgba(15, 76, 129, 0.1);
     }
 
-    /* Added touch-action: manipulation to disable double-tap-to-zoom */
     * { 
       box-sizing: border-box; 
       margin: 0; 
@@ -44,10 +42,14 @@
       line-height: 1.5;
       height: 100vh;
       height: 100dvh; 
+      width: 100vw;
+      /* The magic lock: completely fixes the body to prevent iOS Safari bounce and zoom */
+      position: fixed; 
+      top: 0;
+      left: 0;
       overflow: hidden; 
-      /* Stop font scaling on rotation and disable pinch-zoom entirely while keeping scroll */
+      overscroll-behavior: none;
       -webkit-text-size-adjust: 100%;
-      touch-action: pan-x pan-y;
     }
 
     /* -------------------------------------------
@@ -58,10 +60,12 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100%;
+      height: 100%;
+      width: 100%;
       padding: 24px;
       background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch; /* Smooth internal scrolling */
     }
 
     .landing-header {
@@ -150,6 +154,7 @@
       display: none;
       flex-direction: column;
       height: 100%;
+      width: 100%;
       padding: 24px;
       max-width: 1440px;
       margin: 0 auto;
@@ -391,11 +396,7 @@
        MOBILE & TABLET RESPONSIVENESS (iPhone/iPad friendly)
     ======================================================== */
     @media (max-width: 900px) {
-      body {
-        height: auto;
-        min-height: 100dvh;
-        overflow-y: auto; 
-      }
+      /* Removed body override so it stays strictly fixed */
       
       .landing-title {
         font-size: 2.2rem;
@@ -407,8 +408,8 @@
       }
 
       #editor-view {
-        height: auto;
-        min-height: 100dvh;
+        overflow-y: auto; 
+        -webkit-overflow-scrolling: touch;
         padding: 12px;
         gap: 16px;
       }
@@ -739,7 +740,7 @@ This medical evaluation was given upon the patient's request.`
     setTemplate(defaultTemplate);
     
     // Scroll to top automatically when opening on mobile
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('editor-view').scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function closeWorkspace() {
@@ -885,7 +886,7 @@ This medical evaluation was given upon the patient's request.`
           
           // On mobile, auto-scroll down to the result
           if(window.innerWidth <= 900) {
-            document.querySelector('.panel-note').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.getElementById('editor-view').scrollBy({ top: 300, behavior: 'smooth' });
           }
           
           break; 
