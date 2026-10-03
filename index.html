@@ -597,11 +597,30 @@
 <b>EEG findings:</b> [Content]<br>
 <b>MRI findings:</b> [Content]<br><br>
 <b>Diagnosis:</b> [Provide localization-related epilepsy diagnosis (e.g., Left frontal lobe epilepsy). If drug-resistant or refractory, strictly start the diagnosis by mentioning this (e.g., Drug-resistant left frontal lobe epilepsy).]<br>
-<b>SEIZURE CLASSIFICATION:</b> [Apply the basic 2025 classification using this strict hierarchy: 
-1. If the text does NOT mention tonic, clonic, shaking, or convulsions, classify strictly as a focal seizure using the term "consciousness" exclusively (i.e., Focal impaired consciousness seizures or Focal intact consciousness seizures) — NEVER add "bilateral tonic-clonic". 
-2. If focal features/aura evolve into a bilateral tonic-clonic convulsion, state ONLY "focal to bilateral tonic clonic seizures" (do not state intact/impaired consciousness). 
-3. If the raw text explicitly states "no focal signs" or "no aura" with an immediate generalized convulsion, classify as Generalized tonic-clonic seizures or Unknown onset tonic-clonic. 
-4. For focal events without evolution, you MUST designate "impaired consciousness" if the text mentions unresponsiveness, confusion, no memory, or cannot recall; otherwise, designate "intact consciousness". Include "with or without observable manifestations" appropriately.]<br><br>
+<b>SEIZURE CLASSIFICATION:</b> [Apply the basic 2025 ILAE seizure classification using this strict decision hierarchy:
+
+0. TERMINOLOGY & FORMATTING RULES (CRITICAL):
+   - Output ONLY the single final classification string. Do NOT repeat the classification or output a separate "Diagnosis" line.
+   - Always use the exact term "preserved consciousness". NEVER use the word "intact" in your output under any circumstances.
+
+1. BILATERAL TONIC-CLONIC / CONVULSIVE EVENTS:
+   - If a focal sign/aura evolves into bilateral stiffening/jerking: classify strictly as "Focal to bilateral tonic-clonic seizure" (do NOT designate consciousness).
+   - If generalized from start with no focal aura or signs (or proven generalized network): classify as "Generalized tonic-clonic seizure".
+   - If onset is unwitnessed or undetermined: classify as "Bilateral tonic-clonic seizure" (Unknown whether focal or generalized). Never use the term "onset".
+
+2. FOCAL SEIZURES (Non-evolving to bilateral tonic-clonic):
+   - Assess consciousness operationally via awareness (recall) AND responsiveness:
+     * IMPAIRED: If either recall or responsiveness is altered, unresponsive, or confused -> "Focal impaired consciousness seizure" (inherently with observable manifestations; do not add "without observable manifestations").
+     * PRESERVED: If both recall and responsiveness are fully present/normal -> "Focal preserved consciousness seizure" + append either "with observable manifestations" (motor, speech arrest, autonomic) or "without observable manifestations" (purely subjective aura/sensory/cognitive).
+     * UNDETERMINED: If consciousness was not assessed/unwitnessed -> classify simply as "Focal seizure".
+
+3. GENERALIZED NON-CONVULSIVE EVENTS:
+   - If brief behavioral arrest/staring typical of generalized network -> classify as "Absence seizure".
+   - Other generalized non-tonic-clonic motor events (e.g., generalized myoclonus, atonic drops) -> classify as "Other generalized seizure".
+
+4. UNKNOWN / INSUFFICIENT DATA:
+   - If seizure origin cannot be determined as focal vs generalized: classify as "Unknown whether focal or generalized" (specify preserved/impaired consciousness if known).
+   - If clinical data is inadequate to classify -> classify as "Unclassified".]<br><br>
 <b>Treatment plan:</b><br>[Use an HTML bulleted list (<ul><li>...</li></ul>) for the plans. Ensure a narrative and descriptive style for each bullet point. For all medications, use generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose.]`,
 
       neurology_report: `You are an expert neurologist drafting a formal medical report. Take the raw dictation and structure it strictly into the sections below. Write in a highly professional, detailed, narrative, and scientific medical style suitable for world-class institutions (e.g., Mayo Clinic, Cleveland Clinic). Preserve all clinical details provided. Return ONLY raw HTML. Use <b> tags for main headings. Capitalize only the first letter of the headings. 
@@ -621,11 +640,30 @@ MANDATORY INSTRUCTION: Because HTML lists automatically break lines, you MUST us
 
 Format strictly as follows:
 <b>Diagnosis:</b> [Provide localization-related epilepsy diagnosis (e.g., Left frontal lobe epilepsy). If drug-resistant or refractory, strictly start the diagnosis by mentioning this (e.g., Drug-resistant left frontal lobe epilepsy).]<br>
-<b>SEIZURE CLASSIFICATION:</b> [Apply the basic 2025 classification using this strict hierarchy: 
-1. If the text does NOT mention tonic, clonic, shaking, or convulsions, classify strictly as a focal seizure using the term "consciousness" exclusively (i.e., Focal impaired consciousness seizures or Focal intact consciousness seizures) — NEVER add "bilateral tonic-clonic". 
-2. If focal features/aura evolve into a bilateral tonic-clonic convulsion, state ONLY "focal to bilateral tonic clonic seizures" (do not state intact/impaired consciousness). 
-3. If the raw text explicitly states "no focal signs" or "no aura" with an immediate generalized convulsion, classify as Generalized tonic-clonic seizures or Unknown onset tonic-clonic. 
-4. For focal events without evolution, you MUST designate "impaired consciousness" if the text mentions unresponsiveness, confusion, no memory, or cannot recall; otherwise, designate "intact consciousness". Include "with or without observable manifestations" appropriately.]<br><br>
+<b>SEIZURE CLASSIFICATION:</b> [Apply the basic 2025 ILAE seizure classification using this strict decision hierarchy:
+
+0. TERMINOLOGY & FORMATTING RULES (CRITICAL):
+   - Output ONLY the single final classification string. Do NOT repeat the classification or output a separate "Diagnosis" line.
+   - Always use the exact term "preserved consciousness". NEVER use the word "intact" in your output under any circumstances.
+
+1. BILATERAL TONIC-CLONIC / CONVULSIVE EVENTS:
+   - If a focal sign/aura evolves into bilateral stiffening/jerking: classify strictly as "Focal to bilateral tonic-clonic seizure" (do NOT designate consciousness).
+   - If generalized from start with no focal aura or signs (or proven generalized network): classify as "Generalized tonic-clonic seizure".
+   - If onset is unwitnessed or undetermined: classify as "Bilateral tonic-clonic seizure" (Unknown whether focal or generalized). Never use the term "onset".
+
+2. FOCAL SEIZURES (Non-evolving to bilateral tonic-clonic):
+   - Assess consciousness operationally via awareness (recall) AND responsiveness:
+     * IMPAIRED: If either recall or responsiveness is altered, unresponsive, or confused -> "Focal impaired consciousness seizure" (inherently with observable manifestations; do not add "without observable manifestations").
+     * PRESERVED: If both recall and responsiveness are fully present/normal -> "Focal preserved consciousness seizure" + append either "with observable manifestations" (motor, speech arrest, autonomic) or "without observable manifestations" (purely subjective aura/sensory/cognitive).
+     * UNDETERMINED: If consciousness was not assessed/unwitnessed -> classify simply as "Focal seizure".
+
+3. GENERALIZED NON-CONVULSIVE EVENTS:
+   - If brief behavioral arrest/staring typical of generalized network -> classify as "Absence seizure".
+   - Other generalized non-tonic-clonic motor events (e.g., generalized myoclonus, atonic drops) -> classify as "Other generalized seizure".
+
+4. UNKNOWN / INSUFFICIENT DATA:
+   - If seizure origin cannot be determined as focal vs generalized: classify as "Unknown whether focal or generalized" (specify preserved/impaired consciousness if known).
+   - If clinical data is inadequate to classify -> classify as "Unclassified".]<br><br>
 <b>Medications:</b> [Use an HTML numbered list if >1. For all medications, use the generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose for each, e.g., Levetiracetam (Keppra) 500 mg BID]<br>
 <b>Brief history:</b> [Detailed narrative style reflecting all provided information. DO NOT mention any investigations (like EEG, MRI, PET) here. Reserve all investigation results strictly for the Investigations section to prevent redundancy.]<br><br>
 <b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail any abnormalities.]<br><br>
@@ -644,11 +682,30 @@ Return ONLY raw HTML. Use <b> tags for headings. Capitalize only the first lette
 Format strictly as follows:
 <b>Date of a report:</b> ${todayStr}<br><br>
 <b>Diagnosis:</b> [Use a numbered list if >1. Provide localization-related epilepsy diagnosis (e.g., Left frontal lobe epilepsy). If drug-resistant or refractory, strictly start the diagnosis by mentioning this (e.g., Drug-resistant left frontal lobe epilepsy).]<br>
-<b>SEIZURE CLASSIFICATION:</b> [Apply the basic 2025 classification using this strict hierarchy: 
-1. If the text does NOT mention tonic, clonic, shaking, or convulsions, classify strictly as a focal seizure using the term "consciousness" exclusively (i.e., Focal impaired consciousness seizures or Focal intact consciousness seizures) — NEVER add "bilateral tonic-clonic". 
-2. If focal features/aura evolve into a bilateral tonic-clonic convulsion, state ONLY "focal to bilateral tonic clonic seizures" (do not state intact/impaired consciousness). 
-3. If the raw text explicitly states "no focal signs" or "no aura" with an immediate generalized convulsion, classify as Generalized tonic-clonic seizures or Unknown onset tonic-clonic. 
-4. For focal events without evolution, you MUST designate "impaired consciousness" if the text mentions unresponsiveness, confusion, no memory, or cannot recall; otherwise, designate "intact consciousness". Include "with or without observable manifestations" appropriately.]<br><br>
+<b>SEIZURE CLASSIFICATION:</b> [Apply the basic 2025 ILAE seizure classification using this strict decision hierarchy:
+
+0. TERMINOLOGY & FORMATTING RULES (CRITICAL):
+   - Output ONLY the single final classification string. Do NOT repeat the classification or output a separate "Diagnosis" line.
+   - Always use the exact term "preserved consciousness". NEVER use the word "intact" in your output under any circumstances.
+
+1. BILATERAL TONIC-CLONIC / CONVULSIVE EVENTS:
+   - If a focal sign/aura evolves into bilateral stiffening/jerking: classify strictly as "Focal to bilateral tonic-clonic seizure" (do NOT designate consciousness).
+   - If generalized from start with no focal aura or signs (or proven generalized network): classify as "Generalized tonic-clonic seizure".
+   - If onset is unwitnessed or undetermined: classify as "Bilateral tonic-clonic seizure" (Unknown whether focal or generalized). Never use the term "onset".
+
+2. FOCAL SEIZURES (Non-evolving to bilateral tonic-clonic):
+   - Assess consciousness operationally via awareness (recall) AND responsiveness:
+     * IMPAIRED: If either recall or responsiveness is altered, unresponsive, or confused -> "Focal impaired consciousness seizure" (inherently with observable manifestations; do not add "without observable manifestations").
+     * PRESERVED: If both recall and responsiveness are fully present/normal -> "Focal preserved consciousness seizure" + append either "with observable manifestations" (motor, speech arrest, autonomic) or "without observable manifestations" (purely subjective aura/sensory/cognitive).
+     * UNDETERMINED: If consciousness was not assessed/unwitnessed -> classify simply as "Focal seizure".
+
+3. GENERALIZED NON-CONVULSIVE EVENTS:
+   - If brief behavioral arrest/staring typical of generalized network -> classify as "Absence seizure".
+   - Other generalized non-tonic-clonic motor events (e.g., generalized myoclonus, atonic drops) -> classify as "Other generalized seizure".
+
+4. UNKNOWN / INSUFFICIENT DATA:
+   - If seizure origin cannot be determined as focal vs generalized: classify as "Unknown whether focal or generalized" (specify preserved/impaired consciousness if known).
+   - If clinical data is inadequate to classify -> classify as "Unclassified".]<br><br>
 <b>Medications:</b> [Use a numbered list if >1. For all medications, use the generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose for each, e.g., Levetiracetam (Keppra) 500 mg BID]<br>
 <b>Brief history:</b> [Detailed narrative style, starting with patient demographics and comprehensive description of the history. Use one or two paragraphs here. Include all additional notes in this section. DO NOT mention any investigations (like EEG, MRI, PET) here. Reserve all investigation results strictly for the Epilepsy investigations section to prevent redundancy.]<br><br>
 <b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail abnormalities.]<br><br>
