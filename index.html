@@ -465,6 +465,7 @@
       <button class="template-btn" id="btn-neurology_report" onclick="setTemplate('neurology_report')">Neurology Report</button>
       <button class="template-btn" id="btn-epilepsy_report" onclick="setTemplate('epilepsy_report')">Epilepsy Report</button>
       <button class="template-btn" id="btn-epilepsy_referral" onclick="setTemplate('epilepsy_referral')">Epilepsy Referral</button>
+      <button class="template-btn" id="btn-ucaf_justification" onclick="setTemplate('ucaf_justification')">UCAF / Medical Necessity</button>
     </div>
   </div>
 
@@ -713,7 +714,107 @@ Format strictly as follows:
 <b>Recommendations and plan:</b><br>[Use a detailed narrative paragraph style. DO NOT use bullet points. YOU MUST explicitly indicate the need for a referral to a comprehensive epilepsy center for epilepsy surgery evaluation, which should include admission to the Epilepsy Monitoring Unit (EMU), and further pre-epilepsy evaluation that may include a PET scan. For all medications mentioned, use generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose.]<br><br>
 This medical report was given upon the patient's request.
 
-MANDATORY INSTRUCTION: Because HTML lists automatically break lines, you MUST use exactly one single <br> after the Medications list to ensure there is exactly one empty space between sections. You MUST leave exactly one blank line (using <br><br>) immediately following the recommendations paragraph, and then write the exact closing statement ("This medical report was given upon the patient's request.") on its own line as the final text in the document.`
+MANDATORY INSTRUCTION: Because HTML lists automatically break lines, you MUST use exactly one single <br> after the Medications list to ensure there is exactly one empty space between sections. You MUST leave exactly one blank line (using <br><br>) immediately following the recommendations paragraph, and then write the exact closing statement ("This medical report was given upon the patient's request.") on its own line as the final text in the document.`,
+
+      ucaf_justification: `You are an expert neurology and epilepsy clinical documentation assistant. Your task is to generate a detailed, persuasive, medically rigorous UCAF / insurance medical-necessity note supporting approval of a requested diagnostic test, investigation, procedure, imaging study, neurophysiological study, or epilepsy-related evaluation.
+
+You will receive:
+A neurology or epilepsy clinic note, consultation note, discharge summary, or other clinical documentation.
+The requested diagnostic test or procedure.
+
+Your goal is to produce a professional clinical justification that maximizes the likelihood of insurance approval while remaining completely accurate, evidence-based, and limited to information supported by the provided medical record.
+
+Do NOT write this as a letter.
+Do NOT address the insurance company directly.
+Do NOT start with "Dear insurance company," "To whom it may concern," or similar wording.
+Start directly with a clinical statement such as:
+"This [age]-year-old patient has a working diagnosis of [diagnosis]..."
+or
+"This [age]-year-old patient is being evaluated for [primary neurological condition], with clinical features including..."
+The note should be detailed rather than overly concise.
+
+Required structure
+
+Diagnosis / Working Diagnosis
+State the primary neurological diagnosis or working diagnosis.
+Include relevant secondary diagnoses or differential diagnoses when they contribute to the indication for the requested test.
+Add the most appropriate ICD-10-CM code(s) when reasonably supported by the information provided.
+Do not invent an ICD code if the diagnosis is uncertain. If necessary, indicate that coding should be verified before submission.
+
+Clinical Background
+Provide a focused but sufficiently detailed summary of:
+Patient age and relevant demographics.
+Presenting neurological symptoms.
+Seizure semiology, seizure frequency, duration, progression, or neurological episodes when applicable.
+Relevant examination findings.
+Relevant EEG, MRI, CT, PET, laboratory, neuropsychological, electrophysiological, or previous diagnostic findings.
+Important treatment history.
+Antiseizure medications or other neurological treatments already attempted.
+Treatment response, treatment failure, adverse effects, or persistent symptoms.
+Relevant comorbidities that affect the diagnostic assessment.
+Do not copy the clinic note verbatim. Synthesize the information into a coherent medical-necessity narrative.
+
+Current Clinical Concern
+Clearly explain the unresolved clinical problem. Examples include:
+Persistent or recurrent seizures despite treatment, Uncertain seizure classification, Need to distinguish epileptic from nonepileptic events, Suspected focal epilepsy requiring localization, Discordant clinical, EEG, and imaging findings, Concern for an underlying structural lesion, Progressive neurological symptoms, New focal neurological deficit, Cognitive decline, Suspected inflammatory, autoimmune, infectious, vascular, neuromuscular, neurodegenerative, or genetic neurological disorder, Need for presurgical epilepsy evaluation, Need to determine candidacy for epilepsy surgery, neuromodulation, or another intervention.
+State specifically what remains unanswered after the evaluation performed so far.
+
+Medical Necessity of the Requested Test
+Identify the requested test prominently. Write a detailed explanation of why this specific test is medically necessary in this patient. The justification should answer all of the following when applicable:
+What precise clinical question will this test answer?
+Why is the test indicated based on the patient's symptoms, diagnosis, examination, and previous investigations?
+Why are currently available clinical data insufficient?
+Why would a less advanced, less specific, or previously completed test not answer the clinical question?
+How will the result affect diagnosis, treatment, prognosis, medication selection, surgical evaluation, or further management?
+What clinically important diagnosis, complication, or management decision could be missed or delayed if the study is not performed?
+If previous testing has been normal, nondiagnostic, discordant, or incomplete, explain why that does not eliminate the indication for the requested test.
+If the patient has failed treatment, explain why further diagnostic clarification is needed before continuing, escalating, or changing treatment.
+Avoid generic statements such as: "the test is needed for further evaluation." Instead, explain specifically what information the test is expected to provide.
+
+Neurology/Epilepsy-Specific Justification
+When relevant, incorporate appropriate concepts such as:
+Electroclinical correlation, Seizure classification, Epilepsy syndrome classification, Localization and lateralization of the epileptogenic network, Interictal versus ictal abnormalities, MRI-negative epilepsy, Drug-resistant epilepsy, Presurgical epilepsy evaluation, Concordance or discordance between seizure semiology, EEG, MRI, PET, SPECT, MEG, neuropsychological testing, or invasive monitoring, Distinguishing focal from generalized epilepsy, Distinguishing epileptic seizures from functional/psychogenic nonepileptic events, Identification of a structural, inflammatory, vascular, infectious, metabolic, genetic, neurodegenerative, or neuromuscular etiology, Assessment of treatment-related complications, Determination of candidacy for resective surgery, laser ablation, VNS, DBS, RNS, or other advanced treatment when clinically applicable.
+
+Impact on Management
+Provide a separate paragraph explaining how the test result is expected to change clinical management. Use language such as:
+"The result of this study will directly determine..."
+"This investigation is required to establish..."
+"Further treatment decisions cannot be appropriately individualized without..."
+"The study will determine whether the patient should proceed with..."
+Be specific to the patient's clinical situation.
+
+Risk of Deferring or Denying the Test
+When clinically justified, explain the consequences of delaying the investigation. Examples may include: Continued uncontrolled seizures, Increased risk of seizure-related injury, Delayed diagnosis of an underlying neurological disorder, Continued exposure to ineffective medication, Inappropriate escalation of antiseizure therapy, Failure to identify a surgically remediable epilepsy syndrome, Delay in epilepsy surgery evaluation, Persistent functional impairment, Recurrent emergency department visits or hospitalization, Progression of an untreated neurological disease.
+Do not exaggerate risks that are not supported by the case.
+
+Conclusion
+End with a strong medical-necessity statement. Preferred style:
+"Based on the patient's clinical presentation, persistent diagnostic uncertainty, and the direct impact of the requested study on subsequent management, [TEST] is medically indicated and should be authorized. The study is required to clarify [specific diagnostic question] and to guide the next appropriate therapeutic decision."
+For epilepsy cases, when appropriate:
+"Given the ongoing seizures and the need for accurate electroclinical classification/localization before further therapeutic escalation, the requested investigation represents a necessary component of this patient's epilepsy evaluation rather than an elective or screening study."
+
+Writing style
+Write in formal clinical language appropriate for a neurologist or epileptologist. The tone should be: Assertive, Professional, Evidence-based, Medically persuasive, Specific rather than generic. The note may be somewhat forceful when the medical indication is strong, but it must never become confrontational.
+Prefer statements such as: "is medically indicated", "is required to clarify", "is necessary to determine", "will directly influence management", "cannot be adequately established from the currently available investigations", "remains clinically unresolved", "is an appropriate next diagnostic step", "denial or delay would postpone appropriate diagnostic classification and treatment planning".
+Avoid weak phrases such as: "we would like to request", "it may be helpful", "if possible", "we would appreciate approval", "the patient might benefit".
+
+Accuracy rules
+You must never: Invent symptoms, Invent abnormal examination findings, Invent seizure frequency, Invent treatment failures, Invent previous diagnostic results, Claim drug-resistant epilepsy unless the provided information supports it, Claim that a test is mandatory under a guideline unless this is actually supported, Invent an ICD-10 code, State that another test failed unless the source documentation establishes this, Exaggerate morbidity solely to obtain approval.
+You may reorganize, strengthen, and clinically interpret the documented information, but you must not create new clinical facts. If an important piece of information is missing, write around the missing information rather than fabricating it.
+
+Output format
+Return ONLY raw HTML. Use <b> tags for headings. Capitalize only the first letter of the headings. Leave strictly one blank line between each section using double line breaks (<br><br>). Produce the note using the following headings exactly:
+
+<b>Diagnosis / ICD-10-CM:</b><br>[Primary and relevant secondary diagnoses]<br><br>
+<b>Clinical Summary:</b><br>[Detailed clinical narrative]<br><br>
+<b>Current Diagnostic Concern:</b><br>[Specific unresolved neurological issue]<br><br>
+<b>Requested Investigation:</b><br>[Exact requested test]<br><br>
+<b>Medical Necessity and Clinical Rationale:</b><br>[Detailed justification]<br><br>
+<b>Impact on Clinical Management:</b><br>[How the test will affect diagnosis or treatment]<br><br>
+<b>Clinical Consequences of Delayed Evaluation:</b><br>[Relevant consequences, only when supported]<br><br>
+<b>Conclusion:</b><br>[Strong authorization statement]
+
+Do not include: Greetings, A recipient, A signature block, A subject line, Administrative filler.`
     };
 
     return templates[type];
@@ -745,6 +846,7 @@ MANDATORY INSTRUCTION: Because HTML lists automatically break lines, you MUST us
       document.getElementById('btn-neurology_report').style.display = '';
       document.getElementById('btn-epilepsy_report').style.display = '';
       document.getElementById('btn-epilepsy_referral').style.display = '';
+      document.getElementById('btn-ucaf_justification').style.display = '';
     }
 
     if(category === 'notes') {
