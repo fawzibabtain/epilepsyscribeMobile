@@ -870,7 +870,8 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
   function setTemplate(type) {
     currentActiveTemplate = type;
     document.querySelectorAll('.template-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(`btn-${type}`).classList.add('active');
+    const targetBtn = document.getElementById(`btn-${type}`);
+    if (targetBtn) targetBtn.classList.add('active');
     document.getElementById('instructions-text').value = getTemplate(type);
   }
 
@@ -878,13 +879,79 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
   let recognition = null;
   let isRecording = false;
 
+  // Real-time synchronization state
+  let syncDebounceTimer = null;
+
   try {
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
     updateSyncStatus(true);
     loadStats();
+    initLiveSync(); // Initialize real-time cross-device sync
   } catch (err) {
     updateSyncStatus(false);
+  }
+
+  // -------------------------------------------------------------
+  // REAL-TIME PC & MOBILE SYNC ENGINE
+  // -------------------------------------------------------------
+  function pushLiveSync(rawText, formattedHtml = null) {
+    if (!db) return;
+    const payload = {
+      rawText: rawText !== undefined ? rawText : '',
+      template: currentActiveTemplate,
+      timestamp: Date.now()
+    };
+    if (formattedHtml !== null) {
+      payload.formattedHtml = formattedHtml;
+    }
+    db.collection("active_sync").doc("live_session").set(payload, { merge: true })
+      .catch(err => console.error("Live sync write error:", err));
+  }
+
+  function triggerDebouncedSync(text) {
+    if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+    syncDebounceTimer = setTimeout(() => {
+      pushLiveSync(text);
+    }, 2000); // 2-second debounce lag as requested
+  }
+
+  function initLiveSync() {
+    if (!db) return;
+    db.collection("active_sync").doc("live_session").onSnapshot((doc) => {
+      if (!doc.exists) return;
+      const data = doc.data();
+      if (!data) return;
+
+      // 1. Live raw dictation sync (only update screen if this device is not actively recording)
+      if (!isRecording && data.rawText !== undefined) {
+        const rawBox = document.getElementById('raw-transcript');
+        if (rawBox.value !== data.rawText) {
+          rawBox.value = data.rawText;
+          updateWordCount();
+        }
+      }
+
+      // 2. Formatted note sync
+      if (data.formattedHtml !== undefined && data.formattedHtml !== null) {
+        const noteBox = document.getElementById('formatted-note');
+        if (noteBox.innerHTML !== data.formattedHtml) {
+          noteBox.innerHTML = data.formattedHtml;
+        }
+      }
+
+      // 3. Template and workspace sync
+      if (data.template && data.template !== currentActiveTemplate) {
+        if (document.getElementById('editor-view').style.display === 'flex') {
+          setTemplate(data.template);
+        } else if (data.rawText && data.rawText.trim().length > 0) {
+          const category = (data.template === 'neurology_note' || data.template === 'epilepsy_note') ? 'notes' : 'reports';
+          openWorkspace(category, data.template);
+        }
+      }
+    }, (err) => {
+      console.error("Live sync listener error:", err);
+    });
   }
 
   async function loadStats() {
@@ -945,9 +1012,12 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
 
     recognition.onresult = (event) => {
       let fullTranscript = '';
-      for (let i = 0; i < event.results.length; ++i) { fullTranscript += event.results[i][0].transcript + ' '; }
+      for (let i = 0; i < event.results.length; ++i) { 
+        fullTranscript += event.results[i][0].transcript + ' '; 
+      }
       document.getElementById('raw-transcript').value = fullTranscript;
       updateWordCount();
+      triggerDebouncedSync(fullTranscript);
     };
     recognition.onerror = (event) => { stopDictation(); };
     recognition.onend = () => { if (isRecording) { try { recognition.start(); } catch(e) {} } };
@@ -965,14 +1035,25 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
   }
 
   function stopDictation() {
-    isRecording = false; if (recognition) recognition.stop();
+    isRecording = false; 
+    if (recognition) recognition.stop();
     const btn = document.getElementById('btn-record');
-    btn.classList.remove('recording'); document.getElementById('record-label').innerText = 'Start Dictation';
+    btn.classList.remove('recording'); 
+    document.getElementById('record-label').innerText = 'Start Dictation';
     updateWordCount();
+
+    // Immediately push any pending dictation on stop
+    if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+    pushLiveSync(document.getElementById('raw-transcript').value);
   }
 
   function clearDictation() {
-    if (confirm("Clear dictation text?")) { document.getElementById('raw-transcript').value = ''; updateWordCount(); }
+    if (confirm("Clear dictation text?")) { 
+      document.getElementById('raw-transcript').value = ''; 
+      updateWordCount(); 
+      if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+      pushLiveSync('', '');
+    }
   }
 
   function updateWordCount() {
@@ -981,20 +1062,88 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
     document.getElementById('word-count').innerText = `${words} words`;
   }
 
-  function generateTitle(rawText) {
-    if (!rawText) return "Empty Document";
-    let text = rawText.toLowerCase();
-    let ageMatch = text.match(/(\d{1,3})\s*-?\s*(?:year|yr|yo)/i);
-    let ageStr = ageMatch ? ageMatch[1] + " yo" : "Unknown Age";
+  // -------------------------------------------------------------
+  // HIGH-PRECISION CLINICAL TITLE GENERATOR
+  // Displays: [Age] [Gender (F/M)] - Dx: [Condition]
+  // -------------------------------------------------------------
+  function generateTitle(rawText, htmlText = '') {
+    if (!rawText && !htmlText) return "Empty Document";
+    const combinedText = (rawText + " " + (htmlText ? htmlText.replace(/<[^>]+>/g, " ") : "")).trim();
 
-    let cleanText = text.replace(/[^a-z0-9\s]/g, "");
-    let stopWords = ['the','is','a','an','and','patient','year','old','male','female','with','for','presents','history','of','who','comes','in','to','clinic','here'];
-    let words = cleanText.split(/\s+/).filter(w => w.length > 2 && !stopWords.includes(w));
-    
-    let complaint = words.slice(0, 2).join(" ");
-    if (!complaint) complaint = "Routine Case";
-    
-    return `${ageStr} - ${complaint}`.replace(/\b\w/g, c => c.toUpperCase());
+    // 1. Extract Age
+    let ageStr = "";
+    const ageMatch = combinedText.match(/\b(\d{1,3})\s*(?:-|–)?\s*(?:years?[\s-]*old|yrs?[\s-]*old|yo\b|y\.o\.)/i) 
+                  || combinedText.match(/\bage\s*(?:is|:)?\s*(\d{1,3})\b/i)
+                  || combinedText.match(/\b(\d{1,3})\s*[mf]\b/i);
+    if (ageMatch) {
+      ageStr = `${ageMatch[1]}yo`;
+    }
+
+    // 2. Extract Gender (F or M)
+    let genderStr = "";
+    if (/\b(female|woman|girl|lady)\b/i.test(combinedText) || /\b\d{1,3}\s*f\b/i.test(combinedText)) {
+      genderStr = "F";
+    } else if (/\b(male|man|boy|gentleman)\b/i.test(combinedText) || /\b\d{1,3}\s*m\b/i.test(combinedText)) {
+      genderStr = "M";
+    }
+
+    const demographics = [ageStr, genderStr].filter(Boolean).join(" ");
+
+    // 3. Extract Explicit Diagnosis (Dx)
+    let dxStr = "";
+
+    // Priority 1: Extract explicitly structured diagnosis from the AI formatted note
+    if (htmlText) {
+      const dxHtmlMatch = htmlText.match(/<b>(?:Diagnosis|Diagnosis\s*\/\s*ICD-10-CM):<\/b>\s*(?:<br\s*\/?>|\s)*(?:(?:1\.|•|-|\d+\.)\s*)?([^<]+)/i);
+      if (dxHtmlMatch && dxHtmlMatch[1]) {
+        let candidate = dxHtmlMatch[1].replace(/\[.*?\]/g, '').trim();
+        candidate = candidate.split(/[\n\r]|<br/)[0].trim();
+        candidate = candidate.replace(/\s*\([A-Z0-9\.\-]+\)/i, '').trim(); // Remove ICD code in parentheses for cleaner title
+        if (candidate && candidate.length > 2 && !/^\[content\]/i.test(candidate)) {
+          if (candidate.length > 36) candidate = candidate.substring(0, 36).trim() + "...";
+          dxStr = candidate;
+        }
+      }
+    }
+
+    // Priority 2: Extract explicit diagnosis from raw clinical text
+    if (!dxStr) {
+      const explicitDxPatterns = [
+        /\b(?:diagnosis|dx|diagnosed with|impression)\s*(?::|is)?\s*([^.,\n\r]+)/i,
+        /\b(drug-resistant [a-z\s]+ epilepsy)\b/i,
+        /\b(refractory [a-z\s]+ epilepsy)\b/i,
+        /\b(focal [a-z\s]+ epilepsy)\b/i,
+        /\b(temporal lobe epilepsy|frontal lobe epilepsy|parietal lobe epilepsy|occipital lobe epilepsy)\b/i,
+        /\b(generalized epilepsy|absence epilepsy|juvenile myoclonic epilepsy|jme)\b/i,
+        /\b(epilepsy|seizure disorder|migraine|status epilepticus|stroke|neuropathy|myasthenia gravis|multiple sclerosis|radiculopathy|parkinson['s]? disease)\b/i
+      ];
+
+      for (const pattern of explicitDxPatterns) {
+        const match = rawText.match(pattern);
+        if (match) {
+          let candidate = match[1] || match[0];
+          candidate = candidate.replace(/\b(history of|consistent with|suspected|likely)\b/gi, '').trim();
+          let words = candidate.split(/\s+/).slice(0, 4).join(" ");
+          if (words && words.length > 2 && !/^(the|is|a|an|to|for|with)$/i.test(words)) {
+            if (words.length > 36) words = words.substring(0, 36).trim() + "...";
+            dxStr = words;
+            break;
+          }
+        }
+      }
+    }
+
+    // Format clean Title output
+    if (dxStr) {
+      dxStr = dxStr.replace(/\b\w/g, c => c.toUpperCase());
+      return demographics ? `${demographics} - Dx: ${dxStr}` : `Dx: ${dxStr}`;
+    }
+
+    if (demographics) {
+      return `${demographics} - Clinical Note`;
+    }
+
+    return "Clinical Note";
   }
 
   async function runAiStructuring() {
@@ -1038,7 +1187,10 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
           let formattedHtml = data.choices[0].message.content;
           formattedHtml = formattedHtml.replace(/```html\n?/g, '').replace(/```\n?/g, '');
           document.getElementById('formatted-note').innerHTML = formattedHtml;
+          
+          // Save note history and immediately push formatted note live to PC
           saveToCloud(formattedHtml, rawText);
+          pushLiveSync(rawText, formattedHtml);
           
           if (data.usage) { updateUsageStats(data.usage); }
           
@@ -1067,7 +1219,7 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
     updateSyncStatus(true);
     const docRef = db.collection("scribe_notes").doc(currentActiveTemplate);
     const newNote = {
-      title: generateTitle(rawContent), html: htmlContent,
+      title: generateTitle(rawContent, htmlContent), html: htmlContent,
       raw: rawContent || "", timestamp: Date.now()
     };
     try {
@@ -1085,7 +1237,7 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
   function saveToCloudManual() {
     const noteHtml = document.getElementById('formatted-note').innerHTML;
     const rawContent = document.getElementById('raw-transcript').value;
-    if (!noteHtml.trim()) { alert("No content to save."); return; }
+    if (!noteHtml.trim() && !rawContent.trim()) { alert("No content to save."); return; }
     saveToCloud(noteHtml, rawContent);
   }
 
