@@ -50,6 +50,11 @@
       touch-action: none; 
     }
 
+    /* Output Auto-Hide Utility Class */
+    .hidden-panel {
+      display: none !important;
+    }
+
     /* -------------------------------------------
        LANDING PAGE STYLES
     -------------------------------------------- */
@@ -500,9 +505,9 @@
           <summary>AI Processing Instructions (Tap to edit)</summary>
           <textarea id="instructions-text"></textarea>
         </details>
-        <div id="formatted-note" class="rich-text-box" contenteditable="true" data-placeholder="Structured medical document will appear here..."></div>
+        <div id="formatted-note" class="rich-text-box hidden-panel" contenteditable="true" data-placeholder="Structured medical document will appear here..."></div>
         <div class="btn-row">
-          <button class="btn-primary" onclick="saveToCloudManual()">☁ Save</button>
+          <button class="btn-primary hidden-panel" id="btn-force-save" onclick="saveToCloudManual()">☁ Save</button>
           <button class="btn-secondary" onclick="openHistoryModal()">📁 History</button>
         </div>
       </div>
@@ -526,6 +531,20 @@
 </div>
 
 <script>
+  // =========================================================
+  // PAGE LOAD FIX: Force landing view display on refresh/back
+  // =========================================================
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('editor-view').style.display = 'none';
+    document.getElementById('landing-view').style.display = 'flex';
+  });
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      document.getElementById('editor-view').style.display = 'none';
+      document.getElementById('landing-view').style.display = 'flex';
+    }
+  });
+
   // =========================================================
   // ANTI-ZOOM JAVASCRIPT BLOCKER FOR IOS
   // =========================================================
@@ -611,7 +630,7 @@
 
 2. FOCAL SEIZURES (Non-evolving to bilateral tonic-clonic):
    - Assess consciousness operationally via awareness (recall) AND responsiveness:
-     * IMPAIRED: If either recall or responsiveness is altered, unresponsive, or confused -> "Focal impaired consciousness seizure" (inherently with observable manifestations; do not add "without observable manifestations").
+     * IMPAIRED: If either recall or responsiveness is altered, unresponsive, lapse of awareness, or confused -> "Focal impaired consciousness seizure" (inherently with observable manifestations; do not add "without observable manifestations").
      * PRESERVED: If both recall and responsiveness are fully present/normal -> "Focal preserved consciousness seizure" + append either "with observable manifestations" (motor, speech arrest, autonomic) or "without observable manifestations" (purely subjective aura/sensory/cognitive).
      * UNDETERMINED: If consciousness was not assessed/unwitnessed -> classify simply as "Focal seizure".
 
@@ -654,7 +673,7 @@ Format strictly as follows:
 
 2. FOCAL SEIZURES (Non-evolving to bilateral tonic-clonic):
    - Assess consciousness operationally via awareness (recall) AND responsiveness:
-     * IMPAIRED: If either recall or responsiveness is altered, unresponsive, or confused -> "Focal impaired consciousness seizure" (inherently with observable manifestations; do not add "without observable manifestations").
+     * IMPAIRED: If either recall or responsiveness is altered, unresponsive, lapse of awareness, or confused -> "Focal impaired consciousness seizure" (inherently with observable manifestations; do not add "without observable manifestations").
      * PRESERVED: If both recall and responsiveness are fully present/normal -> "Focal preserved consciousness seizure" + append either "with observable manifestations" (motor, speech arrest, autonomic) or "without observable manifestations" (purely subjective aura/sensory/cognitive).
      * UNDETERMINED: If consciousness was not assessed/unwitnessed -> classify simply as "Focal seizure".
 
@@ -696,7 +715,7 @@ Format strictly as follows:
 
 2. FOCAL SEIZURES (Non-evolving to bilateral tonic-clonic):
    - Assess consciousness operationally via awareness (recall) AND responsiveness:
-     * IMPAIRED: If either recall or responsiveness is altered, unresponsive, or confused -> "Focal impaired consciousness seizure" (inherently with observable manifestations; do not add "without observable manifestations").
+     * IMPAIRED: If either recall or responsiveness is altered, unresponsive, lapse of awareness, or confused -> "Focal impaired consciousness seizure" (inherently with observable manifestations; do not add "without observable manifestations").
      * PRESERVED: If both recall and responsiveness are fully present/normal -> "Focal preserved consciousness seizure" + append either "with observable manifestations" (motor, speech arrest, autonomic) or "without observable manifestations" (purely subjective aura/sensory/cognitive).
      * UNDETERMINED: If consciousness was not assessed/unwitnessed -> classify simply as "Focal seizure".
 
@@ -825,7 +844,15 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
   function openWorkspace(category, defaultTemplate) {
     document.getElementById('raw-transcript').value = '';
     document.getElementById('formatted-note').innerHTML = '';
+    
+    // Auto-hide the output panel elements on new workspace
+    document.getElementById('formatted-note').classList.add('hidden-panel');
+    document.getElementById('btn-force-save').classList.add('hidden-panel');
+
     updateWordCount();
+
+    // Clear cloud state to drop previous patient's note on PC
+    pushLiveSync('', '');
 
     document.getElementById('landing-view').style.display = 'none';
     document.getElementById('editor-view').style.display = 'flex';
@@ -878,8 +905,9 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
   let db = null;
   let recognition = null;
   let isRecording = false;
-
-  // Real-time synchronization state
+  
+  // High-fidelity speech variables
+  let final_transcript = '';
   let syncDebounceTimer = null;
 
   try {
@@ -887,14 +915,11 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
     db = firebase.firestore();
     updateSyncStatus(true);
     loadStats();
-    initLiveSync(); // Initialize real-time cross-device sync
+    initLiveSync();
   } catch (err) {
     updateSyncStatus(false);
   }
 
-  // -------------------------------------------------------------
-  // REAL-TIME PC & MOBILE SYNC ENGINE
-  // -------------------------------------------------------------
   function pushLiveSync(rawText, formattedHtml = null) {
     if (!db) return;
     const payload = {
@@ -912,8 +937,9 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
   function triggerDebouncedSync(text) {
     if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
     syncDebounceTimer = setTimeout(() => {
-      pushLiveSync(text);
-    }, 2000); // 2-second debounce lag as requested
+      const currentFormatted = document.getElementById('formatted-note').innerHTML;
+      pushLiveSync(text, currentFormatted);
+    }, 2000); 
   }
 
   function initLiveSync() {
@@ -923,24 +949,31 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
       const data = doc.data();
       if (!data) return;
 
-      // 1. Live raw dictation sync (only update screen if this device is not actively recording)
       if (!isRecording && data.rawText !== undefined) {
         const rawBox = document.getElementById('raw-transcript');
         if (rawBox.value !== data.rawText) {
           rawBox.value = data.rawText;
+          rawBox.scrollTop = rawBox.scrollHeight;
           updateWordCount();
         }
       }
 
-      // 2. Formatted note sync
       if (data.formattedHtml !== undefined && data.formattedHtml !== null) {
         const noteBox = document.getElementById('formatted-note');
+        const saveBtn = document.getElementById('btn-force-save');
         if (noteBox.innerHTML !== data.formattedHtml) {
           noteBox.innerHTML = data.formattedHtml;
+          
+          if(data.formattedHtml.trim().length > 0) {
+             noteBox.classList.remove('hidden-panel');
+             saveBtn.classList.remove('hidden-panel');
+          } else {
+             noteBox.classList.add('hidden-panel');
+             saveBtn.classList.add('hidden-panel');
+          }
         }
       }
 
-      // 3. Template and workspace sync
       if (data.template && data.template !== currentActiveTemplate) {
         if (document.getElementById('editor-view').style.display === 'flex') {
           setTemplate(data.template);
@@ -958,7 +991,6 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
     if (!db) return;
     try {
       const doc = await db.collection("scribe_stats").doc("global").get();
-      
       let dbReq = 0, dbTokens = 0, dbCost = 0;
       if (doc.exists) {
         const data = doc.data();
@@ -966,7 +998,6 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
         dbTokens = data.total_tokens || 0;
         dbCost = data.total_cost || 0;
       }
-      
       const totalReq = dbReq + BASELINE_REQUESTS;
       const totalTokens = dbTokens + BASELINE_TOKENS;
       const totalCost = dbCost + BASELINE_COST;
@@ -974,7 +1005,6 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
       document.getElementById("gen-count").innerText = `${totalReq} notes generated`;
       document.getElementById("token-count").innerText = totalTokens.toLocaleString();
       document.getElementById("cost-count").innerText = totalCost.toFixed(3);
-      
     } catch(e) {
       document.getElementById("gen-count").innerText = `Stats unavailable`;
     }
@@ -982,13 +1012,10 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
 
   async function updateUsageStats(usageData) {
     if (!db || !usageData) return;
-    
     const pTokens = usageData.prompt_tokens || 0;
     const cTokens = usageData.completion_tokens || 0;
     const tTokens = usageData.total_tokens || 0;
-    
     const cost = (pTokens * 0.15 / 1000000) + (cTokens * 0.60 / 1000000);
-
     try {
       const statsRef = db.collection("scribe_stats").doc("global");
       await statsRef.set({
@@ -996,7 +1023,6 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
         total_tokens: firebase.firestore.FieldValue.increment(tTokens),
         total_cost: firebase.firestore.FieldValue.increment(cost)
       }, { merge: true });
-      
       loadStats();
     } catch (e) {
       console.error("Error updating stats", e);
@@ -1011,13 +1037,30 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
     recognition.lang = 'en-US';
 
     recognition.onresult = (event) => {
-      let fullTranscript = '';
-      for (let i = 0; i < event.results.length; ++i) { 
-        fullTranscript += event.results[i][0].transcript + ' '; 
+      let interim_transcript = '';
+      let newly_final = '';
+      
+      for (let i = event.resultIndex; i < event.results.length; ++i) { 
+        if (event.results[i].isFinal) {
+          newly_final += event.results[i][0].transcript + ' ';
+        } else {
+          interim_transcript += event.results[i][0].transcript + ' ';
+        }
       }
-      document.getElementById('raw-transcript').value = fullTranscript;
+      
+      if (newly_final) {
+        final_transcript += newly_final;
+      }
+      
+      const combinedText = final_transcript + interim_transcript;
+      const rawBox = document.getElementById('raw-transcript');
+      rawBox.value = combinedText;
+      
+      // Auto-scroll dictated text
+      rawBox.scrollTop = rawBox.scrollHeight;
+      
       updateWordCount();
-      triggerDebouncedSync(fullTranscript);
+      triggerDebouncedSync(combinedText);
     };
     recognition.onerror = (event) => { stopDictation(); };
     recognition.onend = () => { if (isRecording) { try { recognition.start(); } catch(e) {} } };
@@ -1029,9 +1072,16 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
   }
 
   function startDictation() {
-    isRecording = true; recognition.start();
+    // Preserve existing edits safely
+    final_transcript = document.getElementById('raw-transcript').value;
+    if(final_transcript.length > 0 && !final_transcript.endsWith(' ')) {
+        final_transcript += ' ';
+    }
+    isRecording = true; 
+    recognition.start();
     const btn = document.getElementById('btn-record');
-    btn.classList.add('recording'); document.getElementById('record-label').innerText = 'Stop Dictation';
+    btn.classList.add('recording'); 
+    document.getElementById('record-label').innerText = 'Stop Dictation';
   }
 
   function stopDictation() {
@@ -1042,14 +1092,20 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
     document.getElementById('record-label').innerText = 'Start Dictation';
     updateWordCount();
 
-    // Immediately push any pending dictation on stop
     if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
-    pushLiveSync(document.getElementById('raw-transcript').value);
+    const currentFormatted = document.getElementById('formatted-note').innerHTML;
+    pushLiveSync(document.getElementById('raw-transcript').value, currentFormatted);
   }
 
   function clearDictation() {
     if (confirm("Clear dictation text?")) { 
       document.getElementById('raw-transcript').value = ''; 
+      document.getElementById('formatted-note').innerHTML = '';
+      
+      // Re-hide output panel
+      document.getElementById('formatted-note').classList.add('hidden-panel');
+      document.getElementById('btn-force-save').classList.add('hidden-panel');
+      
       updateWordCount(); 
       if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
       pushLiveSync('', '');
@@ -1062,15 +1118,10 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
     document.getElementById('word-count').innerText = `${words} words`;
   }
 
-  // -------------------------------------------------------------
-  // HIGH-PRECISION CLINICAL TITLE GENERATOR
-  // Displays: [Age] [Gender (F/M)] - Dx: [Condition]
-  // -------------------------------------------------------------
   function generateTitle(rawText, htmlText = '') {
     if (!rawText && !htmlText) return "Empty Document";
     const combinedText = (rawText + " " + (htmlText ? htmlText.replace(/<[^>]+>/g, " ") : "")).trim();
 
-    // 1. Extract Age
     let ageStr = "";
     const ageMatch = combinedText.match(/\b(\d{1,3})\s*(?:-|–)?\s*(?:years?[\s-]*old|yrs?[\s-]*old|yo\b|y\.o\.)/i) 
                   || combinedText.match(/\bage\s*(?:is|:)?\s*(\d{1,3})\b/i)
@@ -1079,7 +1130,6 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
       ageStr = `${ageMatch[1]}yo`;
     }
 
-    // 2. Extract Gender (F or M)
     let genderStr = "";
     if (/\b(female|woman|girl|lady)\b/i.test(combinedText) || /\b\d{1,3}\s*f\b/i.test(combinedText)) {
       genderStr = "F";
@@ -1089,16 +1139,13 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
 
     const demographics = [ageStr, genderStr].filter(Boolean).join(" ");
 
-    // 3. Extract Explicit Diagnosis (Dx)
     let dxStr = "";
-
-    // Priority 1: Extract explicitly structured diagnosis from the AI formatted note
     if (htmlText) {
       const dxHtmlMatch = htmlText.match(/<b>(?:Diagnosis|Diagnosis\s*\/\s*ICD-10-CM):<\/b>\s*(?:<br\s*\/?>|\s)*(?:(?:1\.|•|-|\d+\.)\s*)?([^<]+)/i);
       if (dxHtmlMatch && dxHtmlMatch[1]) {
         let candidate = dxHtmlMatch[1].replace(/\[.*?\]/g, '').trim();
         candidate = candidate.split(/[\n\r]|<br/)[0].trim();
-        candidate = candidate.replace(/\s*\([A-Z0-9\.\-]+\)/i, '').trim(); // Remove ICD code in parentheses for cleaner title
+        candidate = candidate.replace(/\s*\([A-Z0-9\.\-]+\)/i, '').trim();
         if (candidate && candidate.length > 2 && !/^\[content\]/i.test(candidate)) {
           if (candidate.length > 36) candidate = candidate.substring(0, 36).trim() + "...";
           dxStr = candidate;
@@ -1106,7 +1153,6 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
       }
     }
 
-    // Priority 2: Extract explicit diagnosis from raw clinical text
     if (!dxStr) {
       const explicitDxPatterns = [
         /\b(?:diagnosis|dx|diagnosed with|impression)\s*(?::|is)?\s*([^.,\n\r]+)/i,
@@ -1133,7 +1179,6 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
       }
     }
 
-    // Format clean Title output
     if (dxStr) {
       dxStr = dxStr.replace(/\b\w/g, c => c.toUpperCase());
       return demographics ? `${demographics} - Dx: ${dxStr}` : `Dx: ${dxStr}`;
@@ -1186,15 +1231,24 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
         if (data.choices && data.choices[0].message.content) {
           let formattedHtml = data.choices[0].message.content;
           formattedHtml = formattedHtml.replace(/```html\n?/g, '').replace(/```\n?/g, '');
-          document.getElementById('formatted-note').innerHTML = formattedHtml;
           
-          // Save note history and immediately push formatted note live to PC
+          const noteBox = document.getElementById('formatted-note');
+          const saveBtn = document.getElementById('btn-force-save');
+          
+          noteBox.innerHTML = formattedHtml;
+          noteBox.classList.remove('hidden-panel');
+          saveBtn.classList.remove('hidden-panel');
+          
           saveToCloud(formattedHtml, rawText);
           pushLiveSync(rawText, formattedHtml);
           
           if (data.usage) { updateUsageStats(data.usage); }
           
-          document.getElementById('main-grid').scrollBy({ top: 400, behavior: 'smooth' });
+          // Smooth scroll to output
+          setTimeout(() => {
+             document.getElementById('output-box-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 150);
+
           break; 
         } else if (data.error && data.error.message) {
           alert(`OpenRouter API Error: ${data.error.message}`); 
@@ -1265,9 +1319,18 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
 
   function loadNoteFromHistory(note) {
     document.getElementById('raw-transcript').value = note.raw || '';
-    document.getElementById('formatted-note').innerHTML = note.html || '';
+    
+    const noteBox = document.getElementById('formatted-note');
+    const saveBtn = document.getElementById('btn-force-save');
+    
+    noteBox.innerHTML = note.html || '';
+    noteBox.classList.remove('hidden-panel');
+    saveBtn.classList.remove('hidden-panel');
+    
     updateWordCount();
     document.getElementById('history-modal').style.display = 'none';
+    
+    pushLiveSync(note.raw || '', note.html || '');
   }
 
   function updateSyncStatus(active) {
