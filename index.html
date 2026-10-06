@@ -655,8 +655,8 @@
 <b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail any abnormalities.]<br>
 <b>EEG findings:</b> [Content]<br>
 <b>MRI findings:</b> [Content]<br><br>
-<b>Diagnosis:</b> [Provide localization-related epilepsy diagnosis (e.g., Left frontal lobe epilepsy). If drug-resistant or refractory, strictly start the diagnosis by mentioning this (e.g., Drug-resistant left frontal lobe epilepsy).]<br>
-<b>SEIZURE CLASSIFICATION:</b> [Apply the basic 2025 ILAE seizure classification using this strict decision hierarchy:
+<b>Diagnosis:</b> [Provide the full, complete epilepsy diagnosis based on the dictation. Add the modifier "Drug-resistant" or "Refractory" to the beginning of the diagnosis ONLY if it is explicitly stated in the dictation (e.g., "Drug-resistant right temporal lobe epilepsy"). NEVER output just the words "Drug-resistant" or "Refractory" by themselves as the entire diagnosis.]<br><br>
+<b>SEIZURE CLASSIFICATION:</b> [YOU MUST INCLUDE THIS SECTION DIRECTLY AFTER DIAGNOSIS. Apply the basic 2025 ILAE seizure classification using this strict decision hierarchy:
 
 0. TERMINOLOGY & FORMATTING RULES (CRITICAL):
    - Output ONLY the single final classification string. Do NOT repeat the classification or output a separate "Diagnosis" line.
@@ -698,8 +698,8 @@ MANDATORY INSTRUCTION: Because HTML lists automatically break lines, you MUST us
       epilepsy_report: `You are an expert epileptologist drafting a formal medical report. Take the raw dictation and structure it strictly into the sections below. Write in a highly professional, detailed, narrative, and scientific medical style suitable for world-class institutions (e.g., Mayo Clinic, Cleveland Clinic). Preserve all clinical details provided. Return ONLY raw HTML. Use <b> tags for main headings. Capitalize only the first letter of the headings. 
 
 Format strictly as follows:
-<b>Diagnosis:</b> [Provide localization-related epilepsy diagnosis (e.g., Left frontal lobe epilepsy). If drug-resistant or refractory, strictly start the diagnosis by mentioning this (e.g., Drug-resistant left frontal lobe epilepsy).]<br>
-<b>SEIZURE CLASSIFICATION:</b> [Apply the basic 2025 ILAE seizure classification using this strict decision hierarchy:
+<b>Diagnosis:</b> [Provide the full, complete epilepsy diagnosis based on the dictation. Add the modifier "Drug-resistant" or "Refractory" to the beginning of the diagnosis ONLY if it is explicitly stated in the dictation (e.g., "Drug-resistant right temporal lobe epilepsy"). NEVER output just the words "Drug-resistant" or "Refractory" by themselves as the entire diagnosis.]<br><br>
+<b>SEIZURE CLASSIFICATION:</b> [YOU MUST INCLUDE THIS SECTION DIRECTLY AFTER DIAGNOSIS. Apply the basic 2025 ILAE seizure classification using this strict decision hierarchy:
 
 0. TERMINOLOGY & FORMATTING RULES (CRITICAL):
    - Output ONLY the single final classification string. Do NOT repeat the classification or output a separate "Diagnosis" line.
@@ -740,8 +740,8 @@ Return ONLY raw HTML. Use <b> tags for headings. Capitalize only the first lette
 
 Format strictly as follows:
 <b>Date of a report:</b> ${todayStr}<br><br>
-<b>Diagnosis:</b> [Use a numbered list if >1. Provide localization-related epilepsy diagnosis (e.g., Left frontal lobe epilepsy). If drug-resistant or refractory, strictly start the diagnosis by mentioning this (e.g., Drug-resistant left frontal lobe epilepsy).]<br>
-<b>SEIZURE CLASSIFICATION:</b> [Apply the basic 2025 ILAE seizure classification using this strict decision hierarchy:
+<b>Diagnosis:</b> [Use a numbered list if >1. Provide the full, complete epilepsy diagnosis based on the dictation. Add the modifier "Drug-resistant" or "Refractory" to the beginning of the diagnosis ONLY if it is explicitly stated in the dictation (e.g., "Drug-resistant right temporal lobe epilepsy"). NEVER output just the words "Drug-resistant" or "Refractory" by themselves as the entire diagnosis.]<br><br>
+<b>SEIZURE CLASSIFICATION:</b> [YOU MUST INCLUDE THIS SECTION DIRECTLY AFTER DIAGNOSIS. Apply the basic 2025 ILAE seizure classification using this strict decision hierarchy:
 
 0. TERMINOLOGY & FORMATTING RULES (CRITICAL):
    - Output ONLY the single final classification string. Do NOT repeat the classification or output a separate "Diagnosis" line.
