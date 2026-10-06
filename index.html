@@ -484,7 +484,7 @@
         <span id="word-count" class="badge">0 words</span>
       </div>
       <div class="panel-body">
-        <textarea id="raw-transcript" placeholder="Click 'Start Dictation' to dictate your clinical notes or report details natively..."></textarea>
+        <textarea id="raw-transcript" placeholder="Click 'Start Dictation' to dictate your clinical notes or report details natively..." oninput="triggerDebouncedSync(this.value); updateWordCount();"></textarea>
         <div class="btn-row">
           <button id="btn-record" class="btn-record" onclick="toggleDictation()">
             <span id="record-icon">●</span> <span id="record-label">Start Dictation</span>
@@ -639,7 +639,7 @@
 <b>Chief complaint:</b> (Keep concise under 100 words. Include age, sex, primary reason for visit.)<br><br>
 <b>History:</b> (Use a detailed, scientifically written narrative and descriptive style to summarize clinical history. Divide into 2 to 3 distinct paragraphs using <br><br>.)<br><br>
 <b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail any abnormalities.]<br><br>
-<b>Diagnosis:</b> [Content]<br><br>
+<b>Diagnosis:</b> [Use a numbered list if >1. Provide the full, complete clinical diagnosis based on the dictation, combining manifestations and underlying etiologies into a single professional sentence. Add the modifier "Drug-resistant" or "Refractory" to the beginning of the diagnosis ONLY if explicitly stated in the dictation. NEVER output just the words "Drug-resistant" or "Refractory" by themselves. If MRI pathology was mentioned, state this in the diagnosis (example: with mesial temporal sclerosis). Explicitly append the most accurate ICD-10-CM code(s) in parentheses at the end of each line (e.g., "Drug-resistant left frontal lobe epilepsy secondary to focal cortical dysplasia (G40.219, Q04.8)"). Do not invent an ICD-10 code if uncertain.]<br><br>
 <b>Plan:</b><br>[Use an HTML bulleted list (<ul><li>...</li></ul>) for the plans. Ensure a narrative and descriptive style for each bullet point. For all medications mentioned, use the generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose.]`,
       
       epilepsy_note: `You are an expert epileptologist documenting an outpatient clinic note for the EHR. Take the raw dictation and structure it strictly into this format. Write in a highly professional, detailed, narrative, and scientific medical style suitable for world-class institutions. Preserve all clinical details provided. Return ONLY raw HTML. Use <b> tags for subheadings. Capitalize only the first letter of the headings. Leave strictly one blank line between each section using double line breaks (<br><br>). Format strictly as follows:
@@ -655,7 +655,7 @@
 <b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail any abnormalities.]<br>
 <b>EEG findings:</b> [Content]<br>
 <b>MRI findings:</b> [Content]<br><br>
-<b>Diagnosis:</b> [Provide the full, complete epilepsy diagnosis based on the dictation. Add the modifier "Drug-resistant" or "Refractory" to the beginning of the diagnosis ONLY if it is explicitly stated in the dictation (e.g., "Drug-resistant right temporal lobe epilepsy"). NEVER output just the words "Drug-resistant" or "Refractory" by themselves as the entire diagnosis.]<br><br>
+<b>Diagnosis:</b> [Use a numbered list if >1. Provide the full, complete clinical diagnosis based on the dictation, combining manifestations and underlying etiologies into a single professional sentence. Add the modifier "Drug-resistant" or "Refractory" to the beginning of the diagnosis ONLY if explicitly stated in the dictation. NEVER output just the words "Drug-resistant" or "Refractory" by themselves. If MRI pathology was mentioned, state this in the diagnosis (example: with mesial temporal sclerosis). Explicitly append the most accurate ICD-10-CM code(s) in parentheses at the end of each line (e.g., "Drug-resistant left frontal lobe epilepsy secondary to focal cortical dysplasia (G40.219, Q04.8)"). Do not invent an ICD-10 code if uncertain.]<br><br>
 <b>SEIZURE CLASSIFICATION:</b> [YOU MUST INCLUDE THIS SECTION DIRECTLY AFTER DIAGNOSIS. Apply the basic 2025 ILAE seizure classification using this strict decision hierarchy:
 
 0. TERMINOLOGY & FORMATTING RULES (CRITICAL):
@@ -685,7 +685,7 @@
       neurology_report: `You are an expert neurologist drafting a formal medical report. Take the raw dictation and structure it strictly into the sections below. Write in a highly professional, detailed, narrative, and scientific medical style suitable for world-class institutions (e.g., Mayo Clinic, Cleveland Clinic). Preserve all clinical details provided. Return ONLY raw HTML. Use <b> tags for main headings. Capitalize only the first letter of the headings. 
 
 Format strictly as follows:
-<b>Diagnosis:</b> [Content]<br><br>
+<b>Diagnosis:</b> [Use a numbered list if >1. Provide the full, complete clinical diagnosis based on the dictation, combining manifestations and underlying etiologies into a single professional sentence. Add the modifier "Drug-resistant" or "Refractory" to the beginning of the diagnosis ONLY if explicitly stated in the dictation. NEVER output just the words "Drug-resistant" or "Refractory" by themselves. If MRI pathology was mentioned, state this in the diagnosis (example: with mesial temporal sclerosis). Explicitly append the most accurate ICD-10-CM code(s) in parentheses at the end of each line (e.g., "Drug-resistant left frontal lobe epilepsy secondary to focal cortical dysplasia (G40.219, Q04.8)"). Do not invent an ICD-10 code if uncertain.]<br><br>
 <b>Medications:</b> [Use an HTML numbered list if >1. For all medications, use the generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose for each.]<br>
 <b>Brief history:</b> [Detailed narrative style reflecting all provided information. DO NOT mention any investigations here. Reserve all lab, imaging, and EEG results strictly for the Investigations section to prevent redundancy.]<br><br>
 <b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail any abnormalities.]<br><br>
@@ -698,7 +698,7 @@ MANDATORY INSTRUCTION: Because HTML lists automatically break lines, you MUST us
       epilepsy_report: `You are an expert epileptologist drafting a formal medical report. Take the raw dictation and structure it strictly into the sections below. Write in a highly professional, detailed, narrative, and scientific medical style suitable for world-class institutions (e.g., Mayo Clinic, Cleveland Clinic). Preserve all clinical details provided. Return ONLY raw HTML. Use <b> tags for main headings. Capitalize only the first letter of the headings. 
 
 Format strictly as follows:
-<b>Diagnosis:</b> [Provide the full, complete epilepsy diagnosis based on the dictation. Add the modifier "Drug-resistant" or "Refractory" to the beginning of the diagnosis ONLY if it is explicitly stated in the dictation (e.g., "Drug-resistant right temporal lobe epilepsy"). NEVER output just the words "Drug-resistant" or "Refractory" by themselves as the entire diagnosis.]<br><br>
+<b>Diagnosis:</b> [Use a numbered list if >1. Provide the full, complete clinical diagnosis based on the dictation, combining manifestations and underlying etiologies into a single professional sentence. Add the modifier "Drug-resistant" or "Refractory" to the beginning of the diagnosis ONLY if explicitly stated in the dictation. NEVER output just the words "Drug-resistant" or "Refractory" by themselves. If MRI pathology was mentioned, state this in the diagnosis (example: with mesial temporal sclerosis). Explicitly append the most accurate ICD-10-CM code(s) in parentheses at the end of each line (e.g., "Drug-resistant left frontal lobe epilepsy secondary to focal cortical dysplasia (G40.219, Q04.8)"). Do not invent an ICD-10 code if uncertain.]<br><br>
 <b>SEIZURE CLASSIFICATION:</b> [YOU MUST INCLUDE THIS SECTION DIRECTLY AFTER DIAGNOSIS. Apply the basic 2025 ILAE seizure classification using this strict decision hierarchy:
 
 0. TERMINOLOGY & FORMATTING RULES (CRITICAL):
@@ -723,8 +723,9 @@ Format strictly as follows:
 4. UNKNOWN / INSUFFICIENT DATA:
    - If seizure origin cannot be determined as focal vs generalized: classify as "Unknown whether focal or generalized" (specify preserved/impaired consciousness if known).
    - If clinical data is inadequate to classify -> classify as "Unclassified".]<br><br>
-<b>Medications:</b> [Use an HTML numbered list if >1. For all medications, use the generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose for each, e.g., Levetiracetam (Keppra) 500 mg BID]<br>
-<b>Brief history:</b> [Detailed narrative style reflecting all provided information. DO NOT mention any investigations (like EEG, MRI, PET) here. Reserve all investigation results strictly for the Investigations section to prevent redundancy.]<br><br>
+   
+<b>Medications:</b> [Use an HTML numbered list if >1. For all medications, use the generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose for each, e.g., Levetiracetam (Keppra) 500 mg BID]<br><br>
+<b>Brief history:</b><br> [Detailed narrative style reflecting all provided information. DO NOT mention any investigations (like EEG, MRI, PET) here. Reserve all investigation results strictly for the Investigations section to prevent redundancy.]<br><br>
 <b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail any abnormalities.]<br><br>
 <b>Investigations:</b> [Content - Do not include physical examination here. Compile all mentioned investigations here.]<br><br>
 <b>Treatment plans:</b><br>[Use an HTML bulleted list (<ul><li>...</li></ul>) for easy readability. For all medications, use generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose.]<br>
@@ -740,7 +741,7 @@ Return ONLY raw HTML. Use <b> tags for headings. Capitalize only the first lette
 
 Format strictly as follows:
 <b>Date of a report:</b> ${todayStr}<br><br>
-<b>Diagnosis:</b> [Use a numbered list if >1. Provide the full, complete epilepsy diagnosis based on the dictation. Add the modifier "Drug-resistant" or "Refractory" to the beginning of the diagnosis ONLY if it is explicitly stated in the dictation (e.g., "Drug-resistant right temporal lobe epilepsy"). NEVER output just the words "Drug-resistant" or "Refractory" by themselves as the entire diagnosis.]<br><br>
+<b>Diagnosis:</b> [Use a numbered list if >1. Provide the full, complete clinical diagnosis based on the dictation, combining manifestations and underlying etiologies into a single professional sentence. Add the modifier "Drug-resistant" or "Refractory" to the beginning of the diagnosis ONLY if explicitly stated in the dictation. NEVER output just the words "Drug-resistant" or "Refractory" by themselves. If MRI pathology was mentioned, state this in the diagnosis (example: with mesial temporal sclerosis). Explicitly append the most accurate ICD-10-CM code(s) in parentheses at the end of each line (e.g., "Drug-resistant left frontal lobe epilepsy secondary to focal cortical dysplasia (G40.219, Q04.8)"). Do not invent an ICD-10 code if uncertain.]<br><br>
 <b>SEIZURE CLASSIFICATION:</b> [YOU MUST INCLUDE THIS SECTION DIRECTLY AFTER DIAGNOSIS. Apply the basic 2025 ILAE seizure classification using this strict decision hierarchy:
 
 0. TERMINOLOGY & FORMATTING RULES (CRITICAL):
@@ -765,8 +766,9 @@ Format strictly as follows:
 4. UNKNOWN / INSUFFICIENT DATA:
    - If seizure origin cannot be determined as focal vs generalized: classify as "Unknown whether focal or generalized" (specify preserved/impaired consciousness if known).
    - If clinical data is inadequate to classify -> classify as "Unclassified".]<br><br>
-<b>Medications:</b> [Use a numbered list if >1. For all medications, use the generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose for each, e.g., Levetiracetam (Keppra) 500 mg BID]<br>
-<b>Brief history:</b> [Detailed narrative style, starting with patient demographics and comprehensive description of the history. Use one or two paragraphs here. Include all additional notes in this section. DO NOT mention any investigations (like EEG, MRI, PET) here. Reserve all investigation results strictly for the Epilepsy investigations section to prevent redundancy.]<br><br>
+   
+<b>Medications:</b> [Use a numbered list if >1. For all medications, use the generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose for each, e.g., Levetiracetam (Keppra) 500 mg BID]<br><br>
+<b>Brief history:</b><br> [Detailed narrative style, starting with patient demographics and comprehensive description of the history. Write in at least 2 distinct paragraphs separated by <br><br>. Include all additional notes in this section. DO NOT mention any investigations (like EEG, MRI, PET) here. Reserve all investigation results strictly for the Epilepsy investigations section to prevent redundancy.]<br><br>
 <b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail abnormalities.]<br><br>
 <b>Epilepsy investigations:</b> [Content - Compile all mentioned investigations here. Do not include physical examination.]<br><br>
 <b>Recommendations and plan:</b><br>[Use a detailed narrative paragraph style. DO NOT use bullet points. YOU MUST explicitly indicate the need for a referral to a comprehensive epilepsy center for epilepsy surgery evaluation, which should include admission to the Epilepsy Monitoring Unit (EMU), and further pre-epilepsy evaluation that may include a PET scan. For all medications mentioned, use generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose.]<br><br>
@@ -881,7 +883,9 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
   let currentActiveTemplate = ''; 
 
   function openWorkspace(category, defaultTemplate) {
-    document.getElementById('raw-transcript').value = '';
+    const savedDraft = localStorage.getItem('scribe_local_draft') || '';
+    
+    document.getElementById('raw-transcript').value = savedDraft;
     document.getElementById('formatted-note').innerHTML = '';
     
     // Auto-hide the output panel on new workspace
@@ -890,7 +894,7 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
     updateWordCount();
 
     // Clear cloud state to drop previous patient's note on PC
-    pushLiveSync('', '');
+    pushLiveSync(savedDraft, '');
 
     document.getElementById('landing-view').style.display = 'none';
     document.getElementById('editor-view').style.display = 'flex';
@@ -935,6 +939,9 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
     document.getElementById('editor-view').style.display = 'none';
     document.getElementById('landing-view').style.display = 'flex';
     
+    // NOTE: We do NOT remove scribe_local_draft here. 
+    // The draft stays safe until Format with AI or Clear is clicked.
+
     // Release screen wake lock
     inWorkspace = false;
     releaseWakeLock();
@@ -981,6 +988,8 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
   }
 
   function triggerDebouncedSync(text) {
+    localStorage.setItem('scribe_local_draft', text);
+
     if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
     syncDebounceTimer = setTimeout(() => {
       const currentFormatted = document.getElementById('formatted-note').innerHTML;
@@ -1149,6 +1158,8 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
       document.getElementById('panel-output').classList.add('hidden-panel');
       
       updateWordCount(); 
+      localStorage.removeItem('scribe_local_draft');
+
       if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
       pushLiveSync('', '');
     }
@@ -1242,6 +1253,8 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
     const activeApiKey = getOrPromptApiKey();
     if (!activeApiKey) return;
 
+    localStorage.setItem('scribe_local_draft', rawText);
+
     const btn = document.getElementById('btn-transform');
     btn.disabled = true;
     const endpoint = `https://openrouter.ai/api/v1/chat/completions`;
@@ -1284,6 +1297,9 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
           pushLiveSync(rawText, formattedHtml);
           
           if (data.usage) { updateUsageStats(data.usage); }
+
+          // Clean Slate Reset: Erase draft memory ONLY after successful formatting
+          localStorage.removeItem('scribe_local_draft');
           
           // Smooth scroll to output
           setTimeout(() => {
@@ -1322,7 +1338,7 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
       let history = [];
       if (doc.exists && doc.data().history) { history = doc.data().history; }
       history.unshift(newNote);
-      if (history.length > 5) history = history.slice(0, 5);
+      if (history.length > 10) history = history.slice(0, 10);
       await docRef.set({ history: history });
       updateSyncStatus(true);
       document.getElementById('last-updated').innerText = `Last sync: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
@@ -1360,6 +1376,8 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
 
   function loadNoteFromHistory(note) {
     document.getElementById('raw-transcript').value = note.raw || '';
+
+    localStorage.setItem('scribe_local_draft', note.raw || '');
     
     const outputPanel = document.getElementById('panel-output');
     const noteBox = document.getElementById('formatted-note');
