@@ -286,14 +286,15 @@
     }
     .template-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
+    /* Expanded Grid and Panel for Dictation */
     .grid { 
       display: flex; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch;
-      touch-action: pan-y manipulation; padding-bottom: 80px; gap: 16px; flex: 1;
+      touch-action: pan-y manipulation; padding-bottom: 110px; gap: 16px; flex: 1;
     }
 
     .panel { background: var(--card-bg); border-radius: 12px; display: flex; flex-direction: column; flex-shrink: 0; box-shadow: var(--shadow-soft); }
     
-    .panel-dictation { border: 1px solid #fed7aa; border-top: 4px solid var(--warning); flex: 1; min-height: 40vh; }
+    .panel-dictation { border: 1px solid #fed7aa; border-top: 4px solid var(--warning); flex: 1; min-height: 55vh; }
     .panel-dictation .panel-header { color: #c2410c; }
     
     .panel-note { border: 1px solid #bbf7d0; border-top: 4px solid var(--success); height: auto; }
@@ -488,8 +489,13 @@
           <button id="btn-record" class="btn-record" onclick="toggleDictation()">
             <span id="record-icon">●</span> <span id="record-label">Start Dictation</span>
           </button>
-          <button class="btn-secondary" onclick="clearDictation()">Clear</button>
-          <button class="btn-fallback" onclick="copyRawNote()">📋 Copy Raw</button>
+          
+          <div style="display: flex; width: 100%; gap: 10px;">
+            <button class="btn-secondary" onclick="clearDictation()" style="flex: 1; font-size: 0.85rem; padding: 10px 4px;">Clear</button>
+            <button class="btn-fallback" onclick="copyRawNote()" style="flex: 1; font-size: 0.85rem; padding: 10px 4px;">📋 Copy</button>
+            <button class="btn-secondary" onclick="openHistoryModal()" style="flex: 1; font-size: 0.85rem; padding: 10px 4px;">📁 History</button>
+          </div>
+
           <button class="btn-action" id="btn-transform" onclick="runAiStructuring()">
             ✨ Format with AI
           </button>
@@ -497,7 +503,7 @@
       </div>
     </div>
 
-    <div class="panel panel-note">
+    <div class="panel panel-note hidden-panel" id="panel-output">
       <div class="panel-header">
         <span id="output-box-title">Output</span>
         <button class="btn-copy" onclick="copyRichNote()">📋 Copy</button>
@@ -507,10 +513,9 @@
           <summary>AI Processing Instructions (Tap to edit)</summary>
           <textarea id="instructions-text"></textarea>
         </details>
-        <div id="formatted-note" class="rich-text-box hidden-panel" contenteditable="true" data-placeholder="Structured medical document will appear here..."></div>
+        <div id="formatted-note" class="rich-text-box" contenteditable="true" data-placeholder="Structured medical document will appear here..."></div>
         <div class="btn-row">
-          <button class="btn-primary hidden-panel" id="btn-force-save" onclick="saveToCloudManual()">☁ Save</button>
-          <button class="btn-secondary" onclick="openHistoryModal()">📁 History</button>
+          <button class="btn-primary" id="btn-force-save" onclick="saveToCloudManual()" style="flex: 1;">☁ Save Note manually</button>
         </div>
       </div>
     </div>
@@ -879,9 +884,8 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
     document.getElementById('raw-transcript').value = '';
     document.getElementById('formatted-note').innerHTML = '';
     
-    // Auto-hide the output panel elements on new workspace
-    document.getElementById('formatted-note').classList.add('hidden-panel');
-    document.getElementById('btn-force-save').classList.add('hidden-panel');
+    // Auto-hide the output panel on new workspace
+    document.getElementById('panel-output').classList.add('hidden-panel');
 
     updateWordCount();
 
@@ -1001,17 +1005,16 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
       }
 
       if (data.formattedHtml !== undefined && data.formattedHtml !== null) {
+        const outputPanel = document.getElementById('panel-output');
         const noteBox = document.getElementById('formatted-note');
-        const saveBtn = document.getElementById('btn-force-save');
+        
         if (noteBox.innerHTML !== data.formattedHtml) {
           noteBox.innerHTML = data.formattedHtml;
           
           if(data.formattedHtml.trim().length > 0) {
-             noteBox.classList.remove('hidden-panel');
-             saveBtn.classList.remove('hidden-panel');
+             outputPanel.classList.remove('hidden-panel');
           } else {
-             noteBox.classList.add('hidden-panel');
-             saveBtn.classList.add('hidden-panel');
+             outputPanel.classList.add('hidden-panel');
           }
         }
       }
@@ -1142,9 +1145,8 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
       document.getElementById('raw-transcript').value = ''; 
       document.getElementById('formatted-note').innerHTML = '';
       
-      // Re-hide output panel
-      document.getElementById('formatted-note').classList.add('hidden-panel');
-      document.getElementById('btn-force-save').classList.add('hidden-panel');
+      // Re-hide entire output panel
+      document.getElementById('panel-output').classList.add('hidden-panel');
       
       updateWordCount(); 
       if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
@@ -1272,12 +1274,11 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
           let formattedHtml = data.choices[0].message.content;
           formattedHtml = formattedHtml.replace(/```html\n?/g, '').replace(/```\n?/g, '');
           
+          const outputPanel = document.getElementById('panel-output');
           const noteBox = document.getElementById('formatted-note');
-          const saveBtn = document.getElementById('btn-force-save');
           
           noteBox.innerHTML = formattedHtml;
-          noteBox.classList.remove('hidden-panel');
-          saveBtn.classList.remove('hidden-panel');
+          outputPanel.classList.remove('hidden-panel');
           
           saveToCloud(formattedHtml, rawText);
           pushLiveSync(rawText, formattedHtml);
@@ -1360,12 +1361,11 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
   function loadNoteFromHistory(note) {
     document.getElementById('raw-transcript').value = note.raw || '';
     
+    const outputPanel = document.getElementById('panel-output');
     const noteBox = document.getElementById('formatted-note');
-    const saveBtn = document.getElementById('btn-force-save');
     
     noteBox.innerHTML = note.html || '';
-    noteBox.classList.remove('hidden-panel');
-    saveBtn.classList.remove('hidden-panel');
+    outputPanel.classList.remove('hidden-panel');
     
     updateWordCount();
     document.getElementById('history-modal').style.display = 'none';
