@@ -1,0 +1,1361 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+  <meta charset="UTF-8">  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">  
+  <title>Clinic Note Creator | KFSHRC Jeddah</title>  
+    
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>  
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>  
+  
+  <style>  
+    :root {  
+      --primary: #0f172a;   
+      --primary-light: #1e293b;  
+      --accent-epilepsy: #1e3a8a;   
+      --accent-neuro: #0f766e;   
+      --success: #059669;  
+      --warning: #ea580c;  
+      --danger: #dc2626;  
+      --bg: #f8fafc;   
+      --card-bg: #ffffff;  
+      --border: #e2e8f0;  
+      --text-main: #0f172a;  
+      --text-muted: #64748b;  
+        
+      --shadow-soft: 0 4px 15px rgba(0, 0, 0, 0.05);  
+      --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.08);  
+    }  
+  
+    * {   
+      box-sizing: border-box;   
+      margin: 0;   
+      padding: 0;   
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;   
+    }  
+      
+    html, body {   
+      background-color: var(--bg);   
+      color: var(--text-main);   
+      font-size: 15px;   
+      line-height: 1.5;  
+      width: 100vw;  
+      height: 100dvh;   
+      position: fixed;   
+      top: 0;   
+      left: 0;  
+      overflow: hidden;   
+      overscroll-behavior: none;  
+      -webkit-text-size-adjust: 100%;  
+      touch-action: none;   
+    }  
+  
+    /* Output Auto-Hide Utility Class */  
+    .hidden-panel {  
+      display: none !important;  
+    }  
+  
+    /* -------------------------------------------  
+       LANDING PAGE STYLES  
+    -------------------------------------------- */  
+    #landing-view {  
+      display: flex;  
+      flex-direction: column;  
+      height: 100%;  
+      width: 100%;  
+      background-color: #f1f5f9;  
+      background-image: radial-gradient(#cbd5e1 1px, transparent 1px);  
+      background-size: 24px 24px;  
+      padding: 60px 24px 20px 24px;  
+      overflow-y: auto;   
+      -webkit-overflow-scrolling: touch;  
+      touch-action: pan-y manipulation;   
+      overscroll-behavior: none;  
+      position: relative;  
+    }  
+  
+    .landing-wrapper {  
+      margin: 0 auto;  
+      display: flex;  
+      flex-direction: column;  
+      align-items: center;  
+      width: 100%;  
+      max-width: 600px;  
+      flex: 1;   
+    }  
+  
+    .landing-header {  
+      text-align: center;  
+      margin-bottom: 32px;  
+    }  
+      
+    .landing-title {  
+      font-size: 1.8rem;  
+      font-weight: 700;  
+      color: #0f4c81;  
+      margin-bottom: 12px;  
+      letter-spacing: -0.5px;  
+    }  
+  
+    .landing-header h2 {  
+      font-size: 1.05rem;  
+      color: #0f4c81;  
+      font-weight: 600;  
+      margin-bottom: 8px;  
+      line-height: 1.3;  
+    }  
+      
+    .landing-header p {  
+      font-size: 0.8rem;  
+      color: var(--text-muted);  
+      font-style: italic;  
+    }  
+  
+    .card-list {  
+      display: flex;  
+      flex-direction: column;  
+      gap: 16px;  
+      width: 100%;  
+    }  
+  
+    .nav-card {  
+      background: var(--card-bg);  
+      border-radius: 12px;  
+      padding: 16px;  
+      display: flex;  
+      align-items: center;  
+      cursor: pointer;  
+      box-shadow: var(--shadow-soft);  
+      position: relative;  
+      overflow: hidden;  
+      transition: transform 0.2s ease, box-shadow 0.2s ease;  
+    }  
+    .nav-card:active { transform: scale(0.98); }  
+  
+    .nav-card::before {  
+      content: '';  
+      position: absolute;  
+      left: 0;  
+      top: 50%;  
+      transform: translateY(-50%);  
+      height: 35px;  
+      width: 4px;  
+      border-radius: 0 4px 4px 0;  
+    }  
+    .nav-card.neurology::before, .nav-card.reports::before { background-color: var(--accent-neuro); }  
+    .nav-card.epilepsy::before { background-color: var(--accent-epilepsy); }  
+  
+    .nav-card-icon {  
+      width: 42px;  
+      height: 42px;  
+      margin-left: 8px;  
+      margin-right: 16px;  
+      flex-shrink: 0;  
+      color: var(--primary);  
+    }  
+  
+    .nav-card-text { display: flex; flex-direction: column; }  
+    .nav-card-text h3 { font-size: 1.05rem; color: var(--text-main); font-weight: 600; margin-bottom: 2px; }  
+    .nav-card-text p { color: var(--text-muted); font-size: 0.8rem; line-height: 1.25; }  
+  
+    /* Powered by & Stats styling */  
+    .powered-by {  
+      margin-top: auto;  
+      margin-bottom: 20px;  
+      display: flex;  
+      flex-direction: column;  
+      align-items: center;  
+      gap: 10px;  
+      font-size: 0.85rem;  
+      color: #94a3b8;  
+      font-weight: 600;  
+      letter-spacing: 0.5px;  
+    }  
+      
+    .stats-container {  
+      font-size: 0.8rem;  
+      color: var(--text-muted);  
+      display: flex;  
+      align-items: center;  
+      justify-content: center;  
+      gap: 6px;  
+      background: #e2e8f0;  
+      padding: 6px 16px;  
+      border-radius: 20px;  
+    }  
+    .more-stats {  
+      color: var(--accent-neuro);  
+      cursor: help;  
+      position: relative;  
+      font-size: 0.75rem;  
+      font-weight: 700;  
+    }  
+    .more-stats .tooltip {  
+      visibility: hidden;  
+      width: 200px;  
+      background-color: var(--text-main);  
+      color: #fff;  
+      text-align: center;  
+      border-radius: 8px;  
+      padding: 12px;  
+      position: absolute;  
+      z-index: 10;  
+      bottom: 140%;   
+      left: 50%;  
+      margin-left: -100px;  
+      opacity: 0;  
+      transition: opacity 0.3s;  
+      font-size: 0.8rem;  
+      font-weight: normal;  
+      box-shadow: var(--shadow-hover);  
+      letter-spacing: 0;  
+    }  
+    .more-stats .tooltip::after {  
+      content: "";  
+      position: absolute;  
+      top: 100%;  
+      left: 50%;  
+      margin-left: -5px;  
+      border-width: 5px;  
+      border-style: solid;  
+      border-color: var(--text-main) transparent transparent transparent;  
+    }  
+    .more-stats:hover .tooltip, .more-stats:active .tooltip {  
+      visibility: visible;  
+      opacity: 1;  
+    }  
+  
+    .landing-bottom-nav {  
+      display: flex;  
+      justify-content: center;  
+      gap: 80px;   
+      width: 100%;  
+      padding-bottom: 10px;  
+    }  
+    .nav-icon-btn {  
+      background: none; border: none; cursor: pointer; padding: 10px; color: var(--primary);  
+    }  
+    .nav-icon-btn svg { width: 26px; height: 26px; }  
+  
+    /* -------------------------------------------  
+       EDITOR VIEW STYLES  
+    -------------------------------------------- */  
+    #editor-view {  
+      display: none;  
+      flex-direction: column;  
+      height: 100%;  
+      width: 100%;  
+      padding: 16px;  
+      max-width: 1440px;  
+      margin: 0 auto;  
+      gap: 16px;  
+      position: relative;  
+    }  
+  
+    .editor-header {  
+      display: flex; justify-content: space-between; align-items: center; background: var(--card-bg);  
+      padding: 12px 16px; border-radius: 12px; box-shadow: var(--shadow-soft); border: 1px solid var(--border);  
+      flex-shrink: 0; gap: 16px; touch-action: manipulation;  
+    }  
+    .header-left { display: flex; align-items: center; gap: 12px; justify-content: space-between; width: 100%; }  
+  
+    .editor-title { font-size: 1.1rem; font-weight: 700; color: var(--primary); }  
+  
+    .sync-status {   
+      display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600;  
+      color: var(--text-muted); background: #f8fafc; padding: 4px 10px;  
+      border-radius: 20px; border: 1px solid var(--border);  
+    }  
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; flex-shrink: 0; }  
+    .status-dot.active { background: var(--success); box-shadow: 0 0 8px rgba(5, 150, 105, 0.4); }  
+    .status-dot.error { background: var(--danger); }  
+  
+    .template-bar {  
+      display: flex; gap: 10px; align-items: center; background: var(--card-bg); padding: 10px 16px;  
+      border-radius: 12px; box-shadow: var(--shadow-soft); border: 1px solid var(--border);  
+      flex-shrink: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; touch-action: pan-x manipulation;  
+    }  
+    .template-bar::-webkit-scrollbar { height: 0; display: none; }  
+  
+    .btn-group { display: none; gap: 8px; }  
+    .btn-group.active { display: flex; }  
+  
+    .template-btn {  
+      background: #f1f5f9; border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px;  
+      cursor: pointer; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); white-space: nowrap;  
+    }  
+    .template-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }  
+  
+    .grid {   
+      display: flex; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch;  
+      touch-action: pan-y manipulation; padding-bottom: 80px; gap: 16px;  
+    }  
+  
+    .panel { background: var(--card-bg); border-radius: 12px; display: flex; flex-direction: column; min-height: 55vh; flex-shrink: 0; box-shadow: var(--shadow-soft); }  
+    .panel-dictation { border: 1px solid #fed7aa; border-top: 4px solid var(--warning); }  
+    .panel-dictation .panel-header { color: #c2410c; }  
+    .panel-note { border: 1px solid #bbf7d0; border-top: 4px solid var(--success); }  
+    .panel-note .panel-header { color: #047857; }  
+  
+    .panel-header { background: #ffffff; padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; touch-action: manipulation; }  
+    .panel-body { flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 12px; background: #ffffff; min-height: 0; }  
+  
+    textarea, .rich-text-box { width: 100%; flex: 1; min-height: 0; border-radius: 8px; padding: 14px; font-size: 16px !important; line-height: 1.6; color: var(--text-main); box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); overflow-y: auto; touch-action: pan-y manipulation; }  
+    textarea { resize: none; }  
+      
+    .panel-dictation textarea { border: 1px solid #fdba74; background-color: #ffffff; }  
+    .panel-dictation textarea:focus { outline: none; border-color: var(--warning); }  
+    .panel-note .rich-text-box { border: 1px solid #86efac; background-color: #ffffff; }  
+    .panel-note .rich-text-box:focus { outline: none; border-color: var(--success); }  
+      
+    /* Strict list spacing fix */  
+    .rich-text-box ul, .rich-text-box ol { margin-left: 20px; margin-bottom: 0; margin-top: 0; }  
+    .rich-text-box li { margin-bottom: 4px; }  
+    .rich-text-box[contenteditable]:empty:before { content: attr(data-placeholder); color: #94a3b8; }  
+  
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; flex-shrink: 0; justify-content: space-between; touch-action: manipulation; }  
+    button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; touch-action: manipulation; }  
+      
+    .btn-row button { flex: 1 1 45%; padding: 12px 10px; font-size: 0.9rem; }  
+    #btn-record, #btn-transform { flex: 1 1 100%; font-size: 1.05rem; padding: 14px; }  
+      
+    .btn-primary { background: var(--primary); color: #fff; }  
+    .btn-record { background: var(--danger); color: #fff; }  
+    .btn-record.recording { background: #991b1b; animation: pulse 1.5s infinite; }  
+    .btn-action { background: #0284c7; color: #fff; }  
+    .btn-copy { background: var(--success); color: #fff; padding: 6px 12px; font-size: 0.85rem;}  
+    .btn-fallback { background: #f59e0b; color: #fff; }  
+    .btn-secondary { background: #f8fafc; color: var(--text-main); border: 1px solid #cbd5e1; }  
+  
+    #instructions-section { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 4px; flex-shrink: 0; }  
+    #instructions-section summary { font-weight: 600; cursor: pointer; color: var(--primary); outline: none; font-size: 0.85rem; }  
+    #instructions-text { width: 100%; height: 120px; margin-top: 10px; font-size: 16px !important; color: var(--text-muted); background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 10px; resize: none; touch-action: pan-y manipulation; }  
+  
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; background: #e2e8f0; color: var(--text-muted); text-transform: uppercase; }  
+  
+    /* Subpage Floating Home Button */  
+    .fab-home {  
+      position: absolute;  
+      bottom: 24px;  
+      right: 24px;  
+      width: 52px;  
+      height: 52px;  
+      border-radius: 26px;  
+      background: var(--primary);  
+      color: white;  
+      border: none;  
+      box-shadow: 0 4px 15px rgba(15, 23, 42, 0.3);  
+      display: flex;  
+      align-items: center;  
+      justify-content: center;  
+      z-index: 1000;  
+      cursor: pointer;  
+      transition: transform 0.2s ease;  
+    }  
+    .fab-home:active { transform: scale(0.9); }  
+    .fab-home svg { width: 24px; height: 24px; }  
+  
+    /* Modal Styles */  
+    #history-modal {  
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;  
+      background: rgba(15, 23, 42, 0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(2px); touch-action: none;  
+    }  
+    .modal-content { background: #fff; padding: 20px; border-radius: 16px; width: 400px; max-width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }  
+    .history-item-btn {  
+      background: #f8fafc; border: 1px solid var(--border); padding: 12px; border-radius: 8px;  
+      text-align: left; cursor: pointer; width: 100%; display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px;  
+    }  
+    .history-item-title { font-weight: 700; color: var(--primary); font-size: 0.95rem; }  
+    .history-item-time { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }  
+  </style>  
+</head>  
+<body>  
+  
+<!-- ==========================================  
+     VIEW 1: LANDING PAGE  
+=========================================== -->  
+<div id="landing-view">  
+  <div class="landing-wrapper">  
+      
+    <div class="landing-header">  
+      <h1 class="landing-title">Clinic Note Hub</h1>  
+      <h2>Developed by: Dr. Fawzi Babtain,<br>MBBS, FRCPC, CSCN (EEG, EMG)</h2>  
+      <p>King Faisal Specialist Hospital & Research Centre - Jeddah</p>  
+    </div>  
+      
+    <div class="card-list">  
+      <div class="nav-card neurology" onclick="openWorkspace('notes', 'neurology_note')">  
+        <svg class="nav-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">  
+          <path d="M10.8 3.5C8 3.5 5.5 5.5 5.1 8.3c-.5 3.3 1.2 6.5 4 8 1 .5 1.7 1.5 1.7 2.7V20h2.4v-1c0-1.2.7-2.2 1.7-2.7 2.8-1.5 4.5-4.7 4-8-.4-2.8-2.9-4.8-5.7-4.8h-2.4z"/>  
+          <path d="M12 9c-1.5 0-2 1-2 2M8 12h8M9.5 15h5"/>  
+        </svg>  
+        <div class="nav-card-text">  
+          <h3>Neurology Clinic Note</h3>  
+          <p>Narrative history, chief complaints, and plans</p>  
+        </div>  
+      </div>  
+        
+      <div class="nav-card epilepsy" onclick="openWorkspace('notes', 'epilepsy_note')">  
+        <svg class="nav-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">  
+          <path d="M10.8 3.5C8 3.5 5.5 5.5 5.1 8.3c-.5 3.3 1.2 6.5 4 8 1 .5 1.7 1.5 1.7 2.7V20h2.4v-1c0-1.2.7-2.2 1.7-2.7 2.8-1.5 4.5-4.7 4-8-.4-2.8-2.9-4.8-5.7-4.8h-2.4z"/>  
+          <path d="M4 12h3l2-4 3 8 2-4h6" stroke-width="1.5" stroke="var(--primary)"/>  
+        </svg>  
+        <div class="nav-card-text">  
+          <h3>Epilepsy Clinic Note</h3>  
+          <p>Structured electroclinical variables and formatting</p>  
+        </div>  
+      </div>  
+        
+      <div class="nav-card reports" onclick="openWorkspace('reports', 'neurology_report')">  
+        <svg class="nav-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">  
+          <rect x="5" y="3" width="14" height="18" rx="2"/>  
+          <path d="M9 8h6M9 12h6M9 16h3"/>  
+          <circle cx="7" cy="18" r="1.5" fill="currentColor"/>  
+        </svg>  
+        <div class="nav-card-text">  
+          <h3>Medical Report</h3>  
+          <p>Patient-requested reports and center referrals</p>  
+        </div>  
+      </div>  
+    </div>  
+  
+    <div class="powered-by">  
+      Powered by Open AI  
+      <div class="stats-container">  
+        <span id="gen-count">Loading stats...</span>   
+        <span class="more-stats">(more info)  
+          <div class="tooltip">  
+            <b>Total App Usage</b><br>  
+            Tokens Processed: <span id="token-count">0</span><br>  
+            Estimated Cost: $<span id="cost-count">0.000</span>  
+          </div>  
+        </span>  
+      </div>  
+    </div>  
+      
+    <div class="landing-bottom-nav">  
+      <button class="nav-icon-btn" onclick="window.scrollTo(0,0)">  
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l8 6v12h-5v-7h-6v7H4V9l8-6z"/></svg>  
+      </button>  
+      <button class="nav-icon-btn" onclick="window.location.reload()">  
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>  
+      </button>  
+    </div>  
+  
+  </div>  
+</div>  
+  
+<!-- ==========================================  
+     VIEW 2: EDITOR WORKSPACE  
+=========================================== -->  
+<div id="editor-view">  
+    
+  <div class="editor-header">  
+    <div class="header-left">  
+      <div class="editor-title" id="current-workspace-title">Workspace</div>  
+      <div class="sync-status">  
+        <div class="status-dot" id="sync-dot"></div>  
+        <span id="sync-text" style="display:none;"></span>   
+        <span class="badge" id="last-updated">Last sync: --:--</span>  
+      </div>  
+    </div>  
+  </div>  
+  
+  <div class="template-bar">  
+    <div id="group-notes" class="btn-group">  
+      <button class="template-btn" id="btn-neurology_note" onclick="setTemplate('neurology_note')">Neurology Note</button>  
+      <button class="template-btn" id="btn-epilepsy_note" onclick="setTemplate('epilepsy_note')">Epilepsy Note</button>  
+    </div>  
+    <div id="group-reports" class="btn-group">  
+      <button class="template-btn" id="btn-neurology_report" onclick="setTemplate('neurology_report')">Neurology Report</button>  
+      <button class="template-btn" id="btn-epilepsy_report" onclick="setTemplate('epilepsy_report')">Epilepsy Report</button>  
+      <button class="template-btn" id="btn-epilepsy_referral" onclick="setTemplate('epilepsy_referral')">Epilepsy Referral</button>  
+      <button class="template-btn" id="btn-ucaf_justification" onclick="setTemplate('ucaf_justification')">UCAF / Medical Necessity</button>  
+    </div>  
+  </div>  
+  
+  <div class="grid" id="main-grid">  
+    <div class="panel panel-dictation">  
+      <div class="panel-header">  
+        <span>Dictation box</span>  
+        <span id="word-count" class="badge">0 words</span>  
+      </div>  
+      <div class="panel-body">  
+        <textarea id="raw-transcript" placeholder="Click 'Start Dictation' to dictate your clinical notes or report details natively..."></textarea>  
+        <div class="btn-row">  
+          <button id="btn-record" class="btn-record" onclick="toggleDictation()">  
+            <span id="record-icon">●</span> <span id="record-label">Start Dictation</span>  
+          </button>  
+          <button class="btn-secondary" onclick="clearDictation()">Clear</button>  
+          <button class="btn-fallback" onclick="copyRawNote()">📋 Copy Raw</button>  
+          <button class="btn-action" id="btn-transform" onclick="runAiStructuring()">  
+            ✨ Format with AI  
+          </button>  
+        </div>  
+      </div>  
+    </div>  
+  
+    <div class="panel panel-note">  
+      <div class="panel-header">  
+        <span id="output-box-title">Output</span>  
+        <button class="btn-copy" onclick="copyRichNote()">📋 Copy</button>  
+      </div>  
+      <div class="panel-body">  
+        <details id="instructions-section">  
+          <summary>AI Processing Instructions (Tap to edit)</summary>  
+          <textarea id="instructions-text"></textarea>  
+        </details>  
+        <div id="formatted-note" class="rich-text-box hidden-panel" contenteditable="true" data-placeholder="Structured medical document will appear here..."></div>  
+        <div class="btn-row">  
+          <button class="btn-primary hidden-panel" id="btn-force-save" onclick="saveToCloudManual()">☁ Save</button>  
+          <button class="btn-secondary" onclick="openHistoryModal()">📁 History</button>  
+        </div>  
+      </div>  
+    </div>  
+  </div>  
+  
+  <button class="fab-home" onclick="closeWorkspace()">  
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l8 6v12h-5v-7h-6v7H4V9l8-6z"/></svg>  
+  </button>  
+</div>  
+  
+<!-- ==========================================  
+     MODAL: SAVED HISTORY  
+=========================================== -->  
+<div id="history-modal">  
+  <div class="modal-content">  
+    <h3 style="margin-bottom:12px; color:var(--primary); font-size:1.1rem;">Recent Documents</h3>  
+    <div id="history-list" style="display:flex; flex-direction:column;"></div>  
+    <button onclick="document.getElementById('history-modal').style.display='none'" style="margin-top:12px; width:100%; padding:12px;" class="btn-secondary">Close</button>  
+  </div>  
+</div>  
+  
+<script>  
+  // =========================================================  
+  // PAGE LOAD FIX: Force landing view display on refresh/back  
+  // =========================================================  
+  window.addEventListener('DOMContentLoaded', () => {  
+    document.getElementById('editor-view').style.display = 'none';  
+    document.getElementById('landing-view').style.display = 'flex';  
+  });  
+  window.addEventListener('pageshow', (event) => {  
+    if (event.persisted) {  
+      document.getElementById('editor-view').style.display = 'none';  
+      document.getElementById('landing-view').style.display = 'flex';  
+    }  
+  });  
+  
+  // =========================================================  
+  // ANTI-ZOOM JAVASCRIPT BLOCKER FOR IOS  
+  // =========================================================  
+  document.addEventListener('touchmove', function (event) {  
+    if (event.scale !== 1) { event.preventDefault(); }  
+  }, { passive: false });  
+  
+  let lastTouchEnd = 0;  
+  document.addEventListener('touchend', function (event) {  
+    const now = (new Date()).getTime();  
+    if (now - lastTouchEnd <= 300) { event.preventDefault(); }  
+    lastTouchEnd = now;  
+  }, { passive: false });  
+  
+  // 1. Firebase Config  
+  const firebaseConfig = {  
+    apiKey: "AIzaSyCC79YyVZkVD-GOI0lJKDLj1ZokCUvig-c",  
+    authDomain: "epilepsyscribe.firebaseapp.com",  
+    projectId: "epilepsyscribe",  
+    storageBucket: "epilepsyscribe.firebasestorage.app",  
+    messagingSenderId: "352204084618",  
+    appId: "1:352204084618:web:2f2845be86c43eea03e473",  
+    measurementId: "G-B79NBDS82G"  
+  };  
+  
+  let OPENROUTER_API_KEY = localStorage.getItem("openrouter_key");  
+  
+  function getOrPromptApiKey() {  
+    if (!OPENROUTER_API_KEY) {  
+      let key = prompt("Secure Setup: Please enter your OpenRouter API key to enable AI formatting.");  
+      if (key && key.trim() !== "") {  
+        OPENROUTER_API_KEY = key.trim();  
+        localStorage.setItem("openrouter_key", OPENROUTER_API_KEY);  
+      } else {  
+        alert("An API Key is required to format notes.");  
+        return null;  
+      }  
+    }  
+    return OPENROUTER_API_KEY;  
+  }  
+  
+  // HISTORICAL BASELINE OFFSET   
+  const BASELINE_REQUESTS = 91;   
+  const BASELINE_TOKENS = 115000;  
+  const BASELINE_COST = 0.15;  
+  
+  // 2. Dynamic Template Generator  
+  function getTemplate(type) {  
+    const todayStr = new Date().toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' });  
+  
+    const templates = {  
+      neurology_note: `You are an expert neurologist documenting a clinic note for the EHR. Take the raw dictation and structure it strictly into the sections below. Write in a highly professional, detailed, scientifically written narrative and descriptive medical style suitable for world-class institutions (e.g., Mayo Clinic, Cleveland Clinic). Preserve all clinical details provided. Return ONLY raw HTML. Use <b> tags for main headings. Capitalize only the first letter of the headings. Leave strictly one blank line between each section using double line breaks (<br><br>). Format strictly as follows:  
+<b>Chief complaint:</b> (Keep concise under 100 words. Include age, sex, primary reason for visit.)<br><br>  
+<b>History:</b> (Use a detailed, scientifically written narrative and descriptive style to summarize clinical history. Divide into 2 to 3 distinct paragraphs using <br><br>.)<br><br>  
+<b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail any abnormalities.]<br><br>  
+<b>Diagnosis:</b> [Content]<br><br>  
+<b>Plan:</b><br>[Use an HTML bulleted list (<ul><li>...</li></ul>) for the plans. Ensure a narrative and descriptive style for each bullet point. For all medications mentioned, use the generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose.]`,  
+        
+      epilepsy_note: `You are an expert epileptologist documenting an outpatient clinic note for the EHR. Take the raw dictation and structure it strictly into this format. Write in a highly professional, detailed, narrative, and scientific medical style suitable for world-class institutions. Preserve all clinical details provided. Return ONLY raw HTML. Use <b> tags for subheadings. Capitalize only the first letter of the headings. Leave strictly one blank line between each section using double line breaks (<br><br>). Format strictly as follows:  
+<b>Age and basic info:</b> [Content]<br><br>  
+<b>Seizure description:</b><br>  
+<b>Aura:</b> [Content]<br>  
+<b>Seizure:</b> [Detailed narrative style as described. DO NOT mention seizure frequency, longest seizure freedom, EEG, or MRI findings here.]<br>  
+<b>Seizure frequency:</b> [Content]<br>  
+<b>Longest seizure freedom:</b> [Content]<br><br>  
+<b>Risk factors:</b> [Content]<br>  
+<b>Current medications:</b> [List using generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose, e.g., Levetiracetam (Keppra) 500 mg BID]<br>  
+<b>Previous medications:</b> [List using generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose]<br>  
+<b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail any abnormalities.]<br>  
+<b>EEG findings:</b> [Content]<br>  
+<b>MRI findings:</b> [Content]<br><br>  
+<b>Diagnosis:</b> [Provide localization-related epilepsy diagnosis (e.g., Left frontal lobe epilepsy). If drug-resistant or refractory, strictly start the diagnosis by mentioning this (e.g., Drug-resistant left frontal lobe epilepsy).]<br>  
+<b>SEIZURE CLASSIFICATION:</b> [Apply the basic 2025 ILAE seizure classification using this strict decision hierarchy:  
+  
+0. TERMINOLOGY & FORMATTING RULES (CRITICAL):  
+   - Output ONLY the single final classification string. Do NOT repeat the classification or output a separate "Diagnosis" line.  
+   - Always use the exact term "preserved consciousness". NEVER use the word "intact" in your output under any circumstances.  
+  
+1. BILATERAL TONIC-CLONIC / CONVULSIVE EVENTS:  
+   - If a focal sign/aura evolves into bilateral stiffening/jerking: classify strictly as "Focal to bilateral tonic-clonic seizure" (do NOT designate consciousness).  
+   - If generalized from start with no focal aura or signs (or proven generalized network): classify as "Generalized tonic-clonic seizure".  
+   - If onset is unwitnessed or undetermined: classify as "Bilateral tonic-clonic seizure" (Unknown whether focal or generalized). Never use the term "onset".  
+  
+2. FOCAL SEIZURES (Non-evolving to bilateral tonic-clonic):  
+   - Assess consciousness operationally via awareness (recall) AND responsiveness:  
+     * IMPAIRED: If either recall or responsiveness is altered, unresponsive, lapse of awareness, or confused -> "Focal impaired consciousness seizure" (inherently with observable manifestations; do not add "without observable manifestations").  
+     * PRESERVED: If both recall and responsiveness are fully present/normal -> "Focal preserved consciousness seizure" + append either "with observable manifestations" (motor, speech arrest, autonomic) or "without observable manifestations" (purely subjective aura/sensory/cognitive).  
+     * UNDETERMINED: If consciousness was not assessed/unwitnessed -> classify simply as "Focal seizure".  
+  
+3. GENERALIZED NON-CONVULSIVE EVENTS:  
+   - If brief behavioral arrest/staring typical of generalized network -> classify as "Absence seizure".  
+   - Other generalized non-tonic-clonic motor events (e.g., generalized myoclonus, atonic drops) -> classify as "Other generalized seizure".  
+  
+4. UNKNOWN / INSUFFICIENT DATA:  
+   - If seizure origin cannot be determined as focal vs generalized: classify as "Unknown whether focal or generalized" (specify preserved/impaired consciousness if known).  
+   - If clinical data is inadequate to classify -> classify as "Unclassified".]<br><br>  
+<b>Treatment plan:</b><br>[Use an HTML bulleted list (<ul><li>...</li></ul>) for the plans. Ensure a narrative and descriptive style for each bullet point. For all medications, use generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose.]`,  
+  
+      neurology_report: `You are an expert neurologist drafting a formal medical report. Take the raw dictation and structure it strictly into the sections below. Write in a highly professional, detailed, narrative, and scientific medical style suitable for world-class institutions (e.g., Mayo Clinic, Cleveland Clinic). Preserve all clinical details provided. Return ONLY raw HTML. Use <b> tags for main headings. Capitalize only the first letter of the headings.   
+  
+Format strictly as follows:  
+<b>Diagnosis:</b> [Content]<br><br>  
+<b>Medications:</b> [Use an HTML numbered list if >1. For all medications, use the generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose for each.]<br>  
+<b>Brief history:</b> [Detailed narrative style reflecting all provided information. DO NOT mention any investigations here. Reserve all lab, imaging, and EEG results strictly for the Investigations section to prevent redundancy.]<br><br>  
+<b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail any abnormalities.]<br><br>  
+<b>Investigations:</b> [Content - Do not include physical examination here. Compile all mentioned investigations here.]<br><br>  
+<b>Treatment plans:</b><br>[Use an HTML bulleted list (<ul><li>...</li></ul>) for easy readability. For all medications, use generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose.]<br>  
+This medical report was given upon the patient's request and should not be considered an official referral.  
+  
+MANDATORY INSTRUCTION: Because HTML lists automatically break lines, you MUST use exactly one single <br> after the Medications list and the Treatment plans list to ensure there is exactly one empty space between sections. Do NOT use <br><br> after lists. You MUST include the exact closing statement above ("This medical report was given upon the patient's request and should not be considered an official referral.") as the final line of the document.`,  
+  
+      epilepsy_report: `You are an expert epileptologist drafting a formal medical report. Take the raw dictation and structure it strictly into the sections below. Write in a highly professional, detailed, narrative, and scientific medical style suitable for world-class institutions (e.g., Mayo Clinic, Cleveland Clinic). Preserve all clinical details provided. Return ONLY raw HTML. Use <b> tags for main headings. Capitalize only the first letter of the headings.   
+  
+Format strictly as follows:  
+<b>Diagnosis:</b> [Provide localization-related epilepsy diagnosis (e.g., Left frontal lobe epilepsy). If drug-resistant or refractory, strictly start the diagnosis by mentioning this (e.g., Drug-resistant left frontal lobe epilepsy).]<br>  
+<b>SEIZURE CLASSIFICATION:</b> [Apply the basic 2025 ILAE seizure classification using this strict decision hierarchy:  
+  
+0. TERMINOLOGY & FORMATTING RULES (CRITICAL):  
+   - Output ONLY the single final classification string. Do NOT repeat the classification or output a separate "Diagnosis" line.  
+   - Always use the exact term "preserved consciousness". NEVER use the word "intact" in your output under any circumstances.  
+  
+1. BILATERAL TONIC-CLONIC / CONVULSIVE EVENTS:  
+   - If a focal sign/aura evolves into bilateral stiffening/jerking: classify strictly as "Focal to bilateral tonic-clonic seizure" (do NOT designate consciousness).  
+   - If generalized from start with no focal aura or signs (or proven generalized network): classify as "Generalized tonic-clonic seizure".  
+   - If onset is unwitnessed or undetermined: classify as "Bilateral tonic-clonic seizure" (Unknown whether focal or generalized). Never use the term "onset".  
+  
+2. FOCAL SEIZURES (Non-evolving to bilateral tonic-clonic):  
+   - Assess consciousness operationally via awareness (recall) AND responsiveness:  
+     * IMPAIRED: If either recall or responsiveness is altered, unresponsive, lapse of awareness, or confused -> "Focal impaired consciousness seizure" (inherently with observable manifestations; do not add "without observable manifestations").  
+     * PRESERVED: If both recall and responsiveness are fully present/normal -> "Focal preserved consciousness seizure" + append either "with observable manifestations" (motor, speech arrest, autonomic) or "without observable manifestations" (purely subjective aura/sensory/cognitive).  
+     * UNDETERMINED: If consciousness was not assessed/unwitnessed -> classify simply as "Focal seizure".  
+  
+3. GENERALIZED NON-CONVULSIVE EVENTS:  
+   - If brief behavioral arrest/staring typical of generalized network -> classify as "Absence seizure".  
+   - Other generalized non-tonic-clonic motor events (e.g., generalized myoclonus, atonic drops) -> classify as "Other generalized seizure".  
+  
+4. UNKNOWN / INSUFFICIENT DATA:  
+   - If seizure origin cannot be determined as focal vs generalized: classify as "Unknown whether focal or generalized" (specify preserved/impaired consciousness if known).  
+   - If clinical data is inadequate to classify -> classify as "Unclassified".]<br><br>  
+<b>Medications:</b> [Use an HTML numbered list if >1. For all medications, use the generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose for each, e.g., Levetiracetam (Keppra) 500 mg BID]<br>  
+<b>Brief history:</b> [Detailed narrative style reflecting all provided information. DO NOT mention any investigations (like EEG, MRI, PET) here. Reserve all investigation results strictly for the Investigations section to prevent redundancy.]<br><br>  
+<b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail any abnormalities.]<br><br>  
+<b>Investigations:</b> [Content - Do not include physical examination here. Compile all mentioned investigations here.]<br><br>  
+<b>Treatment plans:</b><br>[Use an HTML bulleted list (<ul><li>...</li></ul>) for easy readability. For all medications, use generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose.]<br>  
+This medical report was given upon the patient's request and should not be considered an official referral.  
+  
+MANDATORY INSTRUCTION: Because HTML lists automatically break lines, you MUST use exactly one single <br> after the Medications list and the Treatment plans list to ensure there is exactly one empty space between sections. Do NOT use <br><br> after lists. You MUST include the exact closing statement above ("This medical report was given upon the patient's request and should not be considered an official referral.") as the final line of the document.`,  
+  
+      epilepsy_referral: `You are an expert epileptologist drafting an official Epilepsy Referral Report. Maintain a professional tone, focusing on delivering the medical report with precision, academic rigor, and comprehensive detail suitable for world-class institutions (e.g., Cleveland Clinic, Mayo Clinic).   
+  
+Use detailed narrative and scientific language. Preserve all clinical nuances dictated. Do not make it too chopped or clumsy. If there are additional notes or remarks in the dictation, ensure they are included entirely under the 'Brief history' section. Write the brief history in at least 2 paragraphs.  
+  
+Return ONLY raw HTML. Use <b> tags for headings. Capitalize only the first letter of the headings.   
+  
+Format strictly as follows:  
+<b>Date of a report:</b> ${todayStr}<br><br>  
+<b>Diagnosis:</b> [Use a numbered list if >1. Provide localization-related epilepsy diagnosis (e.g., Left frontal lobe epilepsy). If drug-resistant or refractory, strictly start the diagnosis by mentioning this (e.g., Drug-resistant left frontal lobe epilepsy).]<br>  
+<b>SEIZURE CLASSIFICATION:</b> [Apply the basic 2025 ILAE seizure classification using this strict decision hierarchy:  
+  
+0. TERMINOLOGY & FORMATTING RULES (CRITICAL):  
+   - Output ONLY the single final classification string. Do NOT repeat the classification or output a separate "Diagnosis" line.  
+   - Always use the exact term "preserved consciousness". NEVER use the word "intact" in your output under any circumstances.  
+  
+1. BILATERAL TONIC-CLONIC / CONVULSIVE EVENTS:  
+   - If a focal sign/aura evolves into bilateral stiffening/jerking: classify strictly as "Focal to bilateral tonic-clonic seizure" (do NOT designate consciousness).  
+   - If generalized from start with no focal aura or signs (or proven generalized network): classify as "Generalized tonic-clonic seizure".  
+   - If onset is unwitnessed or undetermined: classify as "Bilateral tonic-clonic seizure" (Unknown whether focal or generalized). Never use the term "onset".  
+  
+2. FOCAL SEIZURES (Non-evolving to bilateral tonic-clonic):  
+   - Assess consciousness operationally via awareness (recall) AND responsiveness:  
+     * IMPAIRED: If either recall or responsiveness is altered, unresponsive, lapse of awareness, or confused -> "Focal impaired consciousness seizure" (inherently with observable manifestations; do not add "without observable manifestations").  
+     * PRESERVED: If both recall and responsiveness are fully present/normal -> "Focal preserved consciousness seizure" + append either "with observable manifestations" (motor, speech arrest, autonomic) or "without observable manifestations" (purely subjective aura/sensory/cognitive).  
+     * UNDETERMINED: If consciousness was not assessed/unwitnessed -> classify simply as "Focal seizure".  
+  
+3. GENERALIZED NON-CONVULSIVE EVENTS:  
+   - If brief behavioral arrest/staring typical of generalized network -> classify as "Absence seizure".  
+   - Other generalized non-tonic-clonic motor events (e.g., generalized myoclonus, atonic drops) -> classify as "Other generalized seizure".  
+  
+4. UNKNOWN / INSUFFICIENT DATA:  
+   - If seizure origin cannot be determined as focal vs generalized: classify as "Unknown whether focal or generalized" (specify preserved/impaired consciousness if known).  
+   - If clinical data is inadequate to classify -> classify as "Unclassified".]<br><br>  
+<b>Medications:</b> [Use a numbered list if >1. For all medications, use the generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose for each, e.g., Levetiracetam (Keppra) 500 mg BID]<br>  
+<b>Brief history:</b> [Detailed narrative style, starting with patient demographics and comprehensive description of the history. Use one or two paragraphs here. Include all additional notes in this section. DO NOT mention any investigations (like EEG, MRI, PET) here. Reserve all investigation results strictly for the Epilepsy investigations section to prevent redundancy.]<br><br>  
+<b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail abnormalities.]<br><br>  
+<b>Epilepsy investigations:</b> [Content - Compile all mentioned investigations here. Do not include physical examination.]<br><br>  
+<b>Recommendations and plan:</b><br>[Use a detailed narrative paragraph style. DO NOT use bullet points. YOU MUST explicitly indicate the need for a referral to a comprehensive epilepsy center for epilepsy surgery evaluation, which should include admission to the Epilepsy Monitoring Unit (EMU), and further pre-epilepsy evaluation that may include a PET scan. For all medications mentioned, use generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose.]<br><br>  
+This medical report was given upon the patient's request.  
+  
+MANDATORY INSTRUCTION: Because HTML lists automatically break lines, you MUST use exactly one single <br> after the Medications list to ensure there is exactly one empty space between sections. You MUST leave exactly one blank line (using <br><br>) immediately following the recommendations paragraph, and then write the exact closing statement ("This medical report was given upon the patient's request.") on its own line as the final text in the document.`,  
+  
+      ucaf_justification: `You are an expert neurology and epilepsy clinical documentation assistant. Your task is to generate a detailed, persuasive, medically rigorous UCAF / insurance medical-necessity note supporting approval of a requested diagnostic test, investigation, procedure, imaging study, neurophysiological study, or epilepsy-related evaluation.  
+  
+You will receive:  
+A neurology or epilepsy clinic note, consultation note, discharge summary, or other clinical documentation.  
+The requested diagnostic test or procedure.  
+  
+Your goal is to produce a professional clinical justification that maximizes the likelihood of insurance approval while remaining completely accurate, evidence-based, and limited to information supported by the provided medical record.  
+  
+Do NOT write this as a letter.  
+Do NOT address the insurance company directly.  
+Do NOT start with "Dear insurance company," "To whom it may concern," or similar wording.  
+Start directly with a clinical statement such as:  
+"This [age]-year-old patient has a working diagnosis of [diagnosis]..."  
+or  
+"This [age]-year-old patient is being evaluated for [primary neurological condition], with clinical features including..."  
+The note should be detailed rather than overly concise.  
+  
+Required structure  
+  
+Diagnosis / Working Diagnosis  
+State the primary neurological diagnosis or working diagnosis.  
+Include relevant secondary diagnoses or differential diagnoses when they contribute to the indication for the requested test.  
+Add the most appropriate ICD-10-CM code(s) when reasonably supported by the information provided.  
+Do not invent an ICD code if the diagnosis is uncertain. If necessary, indicate that coding should be verified before submission.  
+  
+Clinical Background  
+Provide a focused but sufficiently detailed summary of:  
+Patient age and relevant demographics.  
+Presenting neurological symptoms.  
+Seizure semiology, seizure frequency, duration, progression, or neurological episodes when applicable.  
+Relevant examination findings.  
+Relevant EEG, MRI, CT, PET, laboratory, neuropsychological, electrophysiological, or previous diagnostic findings.  
+Important treatment history.  
+Antiseizure medications or other neurological treatments already attempted.  
+Treatment response, treatment failure, adverse effects, or persistent symptoms.  
+Relevant comorbidities that affect the diagnostic assessment.  
+Do not copy the clinic note verbatim. Synthesize the information into a coherent medical-necessity narrative.  
+  
+Current Clinical Concern  
+Clearly explain the unresolved clinical problem. Examples include:  
+Persistent or recurrent seizures despite treatment, Uncertain seizure classification, Need to distinguish epileptic from nonepileptic events, Suspected focal epilepsy requiring localization, Discordant clinical, EEG, and imaging findings, Concern for an underlying structural lesion, Progressive neurological symptoms, New focal neurological deficit, Cognitive decline, Suspected inflammatory, autoimmune, infectious, vascular, neuromuscular, neurodegenerative, or genetic neurological disorder, Need for presurgical epilepsy evaluation, Need to determine candidacy for epilepsy surgery, neuromodulation, or another intervention.  
+State specifically what remains unanswered after the evaluation performed so far.  
+  
+Medical Necessity of the Requested Test  
+Identify the requested test prominently. Write a detailed explanation of why this specific test is medically necessary in this patient. The justification should answer all of the following when applicable:  
+What precise clinical question will this test answer?  
+Why is the test indicated based on the patient's symptoms, diagnosis, examination, and previous investigations?  
+Why are currently available clinical data insufficient?  
+Why would a less advanced, less specific, or previously completed test not answer the clinical question?  
+How will the result affect diagnosis, treatment, prognosis, medication selection, surgical evaluation, or further management?  
+What clinically important diagnosis, complication, or management decision could be missed or delayed if the study is not performed?  
+If previous testing has been normal, nondiagnostic, discordant, or incomplete, explain why that does not eliminate the indication for the requested test.  
+If the patient has failed treatment, explain why further diagnostic clarification is needed before continuing, escalating, or changing treatment.  
+Avoid generic statements such as: "the test is needed for further evaluation." Instead, explain specifically what information the test is expected to provide.  
+  
+Neurology/Epilepsy-Specific Justification  
+When relevant, incorporate appropriate concepts such as:  
+Electroclinical correlation, Seizure classification, Epilepsy syndrome classification, Localization and lateralization of the epileptogenic network, Interictal versus ictal abnormalities, MRI-negative epilepsy, Drug-resistant epilepsy, Presurgical epilepsy evaluation, Concordance or discordance between seizure semiology, EEG, MRI, PET, SPECT, MEG, neuropsychological testing, or invasive monitoring, Distinguishing focal from generalized epilepsy, Distinguishing epileptic seizures from functional/psychogenic nonepileptic events, Identification of a structural, inflammatory, vascular, infectious, metabolic, genetic, neurodegenerative, or neuromuscular etiology, Assessment of treatment-related complications, Determination of candidacy for resective surgery, laser ablation, VNS, DBS, RNS, or other advanced treatment when clinically applicable.  
+  
+Impact on Management  
+Provide a separate paragraph explaining how the test result is expected to change clinical management. Use language such as:  
+"The result of this study will directly determine..."  
+"This investigation is required to establish..."  
+"Further treatment decisions cannot be appropriately individualized without..."  
+"The study will determine whether the patient should proceed with..."  
+Be specific to the patient's clinical situation.  
+  
+Risk of Deferring or Denying the Test  
+When clinically justified, explain the consequences of delaying the investigation. Examples may include: Continued uncontrolled seizures, Increased risk of seizure-related injury, Delayed diagnosis of an underlying neurological disorder, Continued exposure to ineffective medication, Inappropriate escalation of antiseizure therapy, Failure to identify a surgically remediable epilepsy syndrome, Delay in epilepsy surgery evaluation, Persistent functional impairment, Recurrent emergency department visits or hospitalization, Progression of an untreated neurological disease.  
+Do not exaggerate risks that are not supported by the case.  
+  
+Conclusion  
+End with a strong medical-necessity statement. Preferred style:  
+"Based on the patient's clinical presentation, persistent diagnostic uncertainty, and the direct impact of the requested study on subsequent management, [TEST] is medically indicated and should be authorized. The study is required to clarify [specific diagnostic question] and to guide the next appropriate therapeutic decision."  
+For epilepsy cases, when appropriate:  
+"Given the ongoing seizures and the need for accurate electroclinical classification/localization before further therapeutic escalation, the requested investigation represents a necessary component of this patient's epilepsy evaluation rather than an elective or screening study."  
+  
+Writing style  
+Write in formal clinical language appropriate for a neurologist or epileptologist. The tone should be: Assertive, Professional, Evidence-based, Medically persuasive, Specific rather than generic. The note may be somewhat forceful when the medical indication is strong, but it must never become confrontational.  
+Prefer statements such as: "is medically indicated", "is required to clarify", "is necessary to determine", "will directly influence management", "cannot be adequately established from the currently available investigations", "remains clinically unresolved", "is an appropriate next diagnostic step", "denial or delay would postpone appropriate diagnostic classification and treatment planning".  
+Avoid weak phrases such as: "we would like to request", "it may be helpful", "if possible", "we would appreciate approval", "the patient might benefit".  
+  
+Accuracy rules  
+You must never: Invent symptoms, Invent abnormal examination findings, Invent seizure frequency, Invent treatment failures, Invent previous diagnostic results, Claim drug-resistant epilepsy unless the provided information supports it, Claim that a test is mandatory under a guideline unless this is actually supported, Invent an ICD-10 code, State that another test failed unless the source documentation establishes this, Exaggerate morbidity solely to obtain approval.  
+You may reorganize, strengthen, and clinically interpret the documented information, but you must not create new clinical facts. If an important piece of information is missing, write around the missing information rather than fabricating it.  
+  
+Output format  
+Return ONLY raw HTML. Use <b> tags for headings. Capitalize only the first letter of the headings. Leave strictly one blank line between each section using double line breaks (<br><br>). Produce the note using the following headings exactly:  
+  
+<b>Diagnosis / ICD-10-CM:</b><br>[Primary and relevant secondary diagnoses]<br><br>  
+<b>Clinical Summary:</b><br>[Detailed clinical narrative]<br><br>  
+<b>Current Diagnostic Concern:</b><br>[Specific unresolved neurological issue]<br><br>  
+<b>Requested Investigation:</b><br>[Exact requested test]<br><br>  
+<b>Medical Necessity and Clinical Rationale:</b><br>[Detailed justification]<br><br>  
+<b>Impact on Clinical Management:</b><br>[How the test will affect diagnosis or treatment]<br><br>  
+<b>Clinical Consequences of Delayed Evaluation:</b><br>[Relevant consequences, only when supported]<br><br>  
+<b>Conclusion:</b><br>[Strong authorization statement]  
+  
+Do not include: Greetings, A recipient, A signature block, A subject line, Administrative filler.`  
+    };  
+  
+    return templates[type];  
+  }  
+  
+  let currentActiveTemplate = '';   
+  
+  function openWorkspace(category, defaultTemplate) {  
+    document.getElementById('raw-transcript').value = '';  
+    document.getElementById('formatted-note').innerHTML = '';  
+      
+    // Auto-hide the output panel elements on new workspace  
+    document.getElementById('formatted-note').classList.add('hidden-panel');  
+    document.getElementById('btn-force-save').classList.add('hidden-panel');  
+  
+    updateWordCount();  
+  
+    // Clear cloud state to drop previous patient's note on PC  
+    pushLiveSync('', '');  
+  
+    document.getElementById('landing-view').style.display = 'none';  
+    document.getElementById('editor-view').style.display = 'flex';  
+  
+    document.getElementById('group-notes').classList.remove('active');  
+    document.getElementById('group-reports').classList.remove('active');  
+    document.getElementById(`group-${category}`).classList.add('active');  
+  
+    if (category === 'notes') {  
+      if (defaultTemplate === 'neurology_note') {  
+        document.getElementById('btn-neurology_note').style.display = '';  
+        document.getElementById('btn-epilepsy_note').style.display = 'none';  
+      } else if (defaultTemplate === 'epilepsy_note') {  
+        document.getElementById('btn-neurology_note').style.display = 'none';  
+        document.getElementById('btn-epilepsy_note').style.display = '';  
+      }  
+    } else if (category === 'reports') {  
+      document.getElementById('btn-neurology_report').style.display = '';  
+      document.getElementById('btn-epilepsy_report').style.display = '';  
+      document.getElementById('btn-epilepsy_referral').style.display = '';  
+      document.getElementById('btn-ucaf_justification').style.display = '';  
+    }  
+  
+    if(category === 'notes') {  
+      document.getElementById('current-workspace-title').innerText = 'Notes Workspace';  
+      document.getElementById('output-box-title').innerText = 'Clinic Note Output';  
+    } else {  
+      document.getElementById('current-workspace-title').innerText = 'Reports Workspace';  
+      document.getElementById('output-box-title').innerText = 'Formal Report Output';  
+    }  
+  
+    setTemplate(defaultTemplate);  
+      
+    document.getElementById('main-grid').scrollTo({ top: 0, behavior: 'smooth' });  
+  }  
+  
+  function closeWorkspace() {  
+    document.getElementById('editor-view').style.display = 'none';  
+    document.getElementById('landing-view').style.display = 'flex';  
+  }  
+  
+  function setTemplate(type) {  
+    currentActiveTemplate = type;  
+    document.querySelectorAll('.template-btn').forEach(btn => btn.classList.remove('active'));  
+    const targetBtn = document.getElementById(`btn-${type}`);  
+    if (targetBtn) targetBtn.classList.add('active');  
+    document.getElementById('instructions-text').value = getTemplate(type);  
+  }  
+  
+  let db = null;  
+  let recognition = null;  
+  let isRecording = false;  
+    
+  // High-fidelity speech variables  
+  let final_transcript = '';  
+  let syncDebounceTimer = null;  
+  
+  try {  
+    firebase.initializeApp(firebaseConfig);  
+    db = firebase.firestore();  
+    updateSyncStatus(true);  
+    loadStats();  
+    initLiveSync();  
+  } catch (err) {  
+    updateSyncStatus(false);  
+  }  
+  
+  function pushLiveSync(rawText, formattedHtml = null) {  
+    if (!db) return;  
+    const payload = {  
+      rawText: rawText !== undefined ? rawText : '',  
+      template: currentActiveTemplate,  
+      timestamp: Date.now()  
+    };  
+    if (formattedHtml !== null) {  
+      payload.formattedHtml = formattedHtml;  
+    }  
+    db.collection("active_sync").doc("live_session").set(payload, { merge: true })  
+      .catch(err => console.error("Live sync write error:", err));  
+  }  
+  
+  function triggerDebouncedSync(text) {  
+    if (syncDebounceTimer) clearTimeout(syncDebounceTimer);  
+    syncDebounceTimer = setTimeout(() => {  
+      const currentFormatted = document.getElementById('formatted-note').innerHTML;  
+      pushLiveSync(text, currentFormatted);  
+    }, 2000);   
+  }  
+  
+  function initLiveSync() {  
+    if (!db) return;  
+    db.collection("active_sync").doc("live_session").onSnapshot((doc) => {  
+      if (!doc.exists) return;  
+      const data = doc.data();  
+      if (!data) return;  
+  
+      if (!isRecording && data.rawText !== undefined) {  
+        const rawBox = document.getElementById('raw-transcript');  
+        if (rawBox.value !== data.rawText) {  
+          rawBox.value = data.rawText;  
+          rawBox.scrollTop = rawBox.scrollHeight;  
+          updateWordCount();  
+        }  
+      }  
+  
+      if (data.formattedHtml !== undefined && data.formattedHtml !== null) {  
+        const noteBox = document.getElementById('formatted-note');  
+        const saveBtn = document.getElementById('btn-force-save');  
+        if (noteBox.innerHTML !== data.formattedHtml) {  
+          noteBox.innerHTML = data.formattedHtml;  
+            
+          if(data.formattedHtml.trim().length > 0) {  
+             noteBox.classList.remove('hidden-panel');  
+             saveBtn.classList.remove('hidden-panel');  
+          } else {  
+             noteBox.classList.add('hidden-panel');  
+             saveBtn.classList.add('hidden-panel');  
+          }  
+        }  
+      }  
+  
+      if (data.template && data.template !== currentActiveTemplate) {  
+        if (document.getElementById('editor-view').style.display === 'flex') {  
+          setTemplate(data.template);  
+        } else if (data.rawText && data.rawText.trim().length > 0) {  
+          const category = (data.template === 'neurology_note' || data.template === 'epilepsy_note') ? 'notes' : 'reports';  
+          openWorkspace(category, data.template);  
+        }  
+      }  
+    }, (err) => {  
+      console.error("Live sync listener error:", err);  
+    });  
+  }  
+  
+  async function loadStats() {  
+    if (!db) return;  
+    try {  
+      const doc = await db.collection("scribe_stats").doc("global").get();  
+      let dbReq = 0, dbTokens = 0, dbCost = 0;  
+      if (doc.exists) {  
+        const data = doc.data();  
+        dbReq = data.total_requests || 0;  
+        dbTokens = data.total_tokens || 0;  
+        dbCost = data.total_cost || 0;  
+      }  
+      const totalReq = dbReq + BASELINE_REQUESTS;  
+      const totalTokens = dbTokens + BASELINE_TOKENS;  
+      const totalCost = dbCost + BASELINE_COST;  
+  
+      document.getElementById("gen-count").innerText = `${totalReq} notes generated`;  
+      document.getElementById("token-count").innerText = totalTokens.toLocaleString();  
+      document.getElementById("cost-count").innerText = totalCost.toFixed(3);  
+    } catch(e) {  
+      document.getElementById("gen-count").innerText = `Stats unavailable`;  
+    }  
+  }  
+  
+  async function updateUsageStats(usageData) {  
+    if (!db || !usageData) return;  
+    const pTokens = usageData.prompt_tokens || 0;  
+    const cTokens = usageData.completion_tokens || 0;  
+    const tTokens = usageData.total_tokens || 0;  
+    const cost = (pTokens * 0.15 / 1000000) + (cTokens * 0.60 / 1000000);  
+    try {  
+      const statsRef = db.collection("scribe_stats").doc("global");  
+      await statsRef.set({  
+        total_requests: firebase.firestore.FieldValue.increment(1),  
+        total_tokens: firebase.firestore.FieldValue.increment(tTokens),  
+        total_cost: firebase.firestore.FieldValue.increment(cost)  
+      }, { merge: true });  
+      loadStats();  
+    } catch (e) {  
+      console.error("Error updating stats", e);  
+    }  
+  }  
+  
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {  
+    const SpeechClass = window.SpeechRecognition || window.webkitSpeechRecognition;  
+    recognition = new SpeechClass();  
+    recognition.continuous = true;  
+    recognition.interimResults = true;  
+    recognition.lang = 'en-US';  
+  
+    recognition.onresult = (event) => {  
+      let interim_transcript = '';  
+      let newly_final = '';  
+        
+      for (let i = event.resultIndex; i < event.results.length; ++i) {   
+        if (event.results[i].isFinal) {  
+          newly_final += event.results[i][0].transcript + ' ';  
+        } else {  
+          interim_transcript += event.results[i][0].transcript + ' ';  
+        }  
+      }  
+        
+      if (newly_final) {  
+        final_transcript += newly_final;  
+      }  
+        
+      const combinedText = final_transcript + interim_transcript;  
+      const rawBox = document.getElementById('raw-transcript');  
+      rawBox.value = combinedText;  
+        
+      // Auto-scroll dictated text  
+      rawBox.scrollTop = rawBox.scrollHeight;  
+        
+      updateWordCount();  
+      triggerDebouncedSync(combinedText);  
+    };  
+    recognition.onerror = (event) => { stopDictation(); };  
+    recognition.onend = () => { if (isRecording) { try { recognition.start(); } catch(e) {} } };  
+  }  
+  
+  function toggleDictation() {  
+    if (!recognition) { alert("Speech recognition is supported natively in Chrome/Edge on iOS and Safari."); return; }  
+    if (!isRecording) { startDictation(); } else { stopDictation(); }  
+  }  
+  
+  function startDictation() {  
+    // Preserve existing edits safely  
+    final_transcript = document.getElementById('raw-transcript').value;  
+    if(final_transcript.length > 0 && !final_transcript.endsWith(' ')) {  
+        final_transcript += ' ';  
+    }  
+    isRecording = true;   
+    recognition.start();  
+    const btn = document.getElementById('btn-record');  
+    btn.classList.add('recording');   
+    document.getElementById('record-label').innerText = 'Stop Dictation';  
+  }  
+  
+  function stopDictation() {  
+    isRecording = false;   
+    if (recognition) recognition.stop();  
+    const btn = document.getElementById('btn-record');  
+    btn.classList.remove('recording');   
+    document.getElementById('record-label').innerText = 'Start Dictation';  
+    updateWordCount();  
+  
+    if (syncDebounceTimer) clearTimeout(syncDebounceTimer);  
+    const currentFormatted = document.getElementById('formatted-note').innerHTML;  
+    pushLiveSync(document.getElementById('raw-transcript').value, currentFormatted);  
+  }  
+  
+  function clearDictation() {  
+    if (confirm("Clear dictation text?")) {   
+      document.getElementById('raw-transcript').value = '';   
+      document.getElementById('formatted-note').innerHTML = '';  
+        
+      // Re-hide output panel  
+      document.getElementById('formatted-note').classList.add('hidden-panel');  
+      document.getElementById('btn-force-save').classList.add('hidden-panel');  
+        
+      updateWordCount();   
+      if (syncDebounceTimer) clearTimeout(syncDebounceTimer);  
+      pushLiveSync('', '');  
+    }  
+  }  
+  
+  function updateWordCount() {  
+    const text = document.getElementById('raw-transcript').value.trim();  
+    const words = text ? text.split(/\s+/).length : 0;  
+    document.getElementById('word-count').innerText = `${words} words`;  
+  }  
+  
+  function generateTitle(rawText, htmlText = '') {  
+    if (!rawText && !htmlText) return "Empty Document";  
+    const combinedText = (rawText + " " + (htmlText ? htmlText.replace(/<[^>]+>/g, " ") : "")).trim();  
+  
+    let ageStr = "";  
+    const ageMatch = combinedText.match(/\b(\d{1,3})\s*(?:-|–)?\s*(?:years?[\s-]*old|yrs?[\s-]*old|yo\b|y\.o\.)/i)   
+                  || combinedText.match(/\bage\s*(?:is|:)?\s*(\d{1,3})\b/i)  
+                  || combinedText.match(/\b(\d{1,3})\s*[mf]\b/i);  
+    if (ageMatch) {  
+      ageStr = `${ageMatch[1]}yo`;  
+    }  
+  
+    let genderStr = "";  
+    if (/\b(female|woman|girl|lady)\b/i.test(combinedText) || /\b\d{1,3}\s*f\b/i.test(combinedText)) {  
+      genderStr = "F";  
+    } else if (/\b(male|man|boy|gentleman)\b/i.test(combinedText) || /\b\d{1,3}\s*m\b/i.test(combinedText)) {  
+      genderStr = "M";  
+    }  
+  
+    const demographics = [ageStr, genderStr].filter(Boolean).join(" ");  
+  
+    let dxStr = "";  
+    if (htmlText) {  
+      const dxHtmlMatch = htmlText.match(/<b>(?:Diagnosis|Diagnosis\s*\/\s*ICD-10-CM):<\/b>\s*(?:<br\s*\/?>|\s)*(?:(?:1\.|•|-|\d+\.)\s*)?([^<]+)/i);  
+      if (dxHtmlMatch && dxHtmlMatch[1]) {  
+        let candidate = dxHtmlMatch[1].replace(/\[.*?\]/g, '').trim();  
+        candidate = candidate.split(/[\n\r]|<br/)[0].trim();  
+        candidate = candidate.replace(/\s*\([A-Z0-9\.\-]+\)/i, '').trim();  
+        if (candidate && candidate.length > 2 && !/^\[content\]/i.test(candidate)) {  
+          if (candidate.length > 36) candidate = candidate.substring(0, 36).trim() + "...";  
+          dxStr = candidate;  
+        }  
+      }  
+    }  
+  
+    if (!dxStr) {  
+      const explicitDxPatterns = [  
+        /\b(?:diagnosis|dx|diagnosed with|impression)\s*(?::|is)?\s*([^.,\n\r]+)/i,  
+        /\b(drug-resistant [a-z\s]+ epilepsy)\b/i,  
+        /\b(refractory [a-z\s]+ epilepsy)\b/i,  
+        /\b(focal [a-z\s]+ epilepsy)\b/i,  
+        /\b(temporal lobe epilepsy|frontal lobe epilepsy|parietal lobe epilepsy|occipital lobe epilepsy)\b/i,  
+        /\b(generalized epilepsy|absence epilepsy|juvenile myoclonic epilepsy|jme)\b/i,  
+        /\b(epilepsy|seizure disorder|migraine|status epilepticus|stroke|neuropathy|myasthenia gravis|multiple sclerosis|radiculopathy|parkinson['s]? disease)\b/i  
+      ];  
+  
+      for (const pattern of explicitDxPatterns) {  
+        const match = rawText.match(pattern);  
+        if (match) {  
+          let candidate = match[1] || match[0];  
+          candidate = candidate.replace(/\b(history of|consistent with|suspected|likely)\b/gi, '').trim();  
+          let words = candidate.split(/\s+/).slice(0, 4).join(" ");  
+          if (words && words.length > 2 && !/^(the|is|a|an|to|for|with)$/i.test(words)) {  
+            if (words.length > 36) words = words.substring(0, 36).trim() + "...";  
+            dxStr = words;  
+            break;  
+          }  
+        }  
+      }  
+    }  
+  
+    if (dxStr) {  
+      dxStr = dxStr.replace(/\b\w/g, c => c.toUpperCase());  
+      return demographics ? `${demographics} - Dx: ${dxStr}` : `Dx: ${dxStr}`;  
+    }  
+  
+    if (demographics) {  
+      return `${demographics} - Clinical Note`;  
+    }  
+  
+    return "Clinical Note";  
+  }  
+  
+  async function runAiStructuring() {  
+    const rawText = document.getElementById('raw-transcript').value.trim();  
+    const instructions = document.getElementById('instructions-text').value;  
+  
+    if (!rawText) { alert("Please dictate or type notes first."); return; }  
+      
+    const activeApiKey = getOrPromptApiKey();  
+    if (!activeApiKey) return;  
+  
+    const btn = document.getElementById('btn-transform');  
+    btn.disabled = true;  
+    const endpoint = `https://openrouter.ai/api/v1/chat/completions`;  
+    const maxRetries = 3;  
+    let attempt = 0;  
+      
+    while (attempt < maxRetries) {  
+      try {  
+        btn.innerText = attempt === 0 ? "⏳ Formatting..." : `⏳ Busy. Retrying (${attempt}/${maxRetries})...`;  
+        const response = await fetch(endpoint, {  
+          method: "POST",   
+          headers: {   
+            "Content-Type": "application/json",  
+            "Authorization": `Bearer ${activeApiKey}`,  
+            "HTTP-Referer": window.location.href,  
+            "X-Title": "KFSHRC Clinic Note Hub"  
+          },  
+          body: JSON.stringify({   
+            model: "openai/gpt-4o-mini", // STRICTLY openai/gpt-4o-mini  
+            messages: [  
+              { role: "system", content: instructions },  
+              { role: "user", content: `RAW DICTATION TEXT TO FORMAT:\n"""\n${rawText}\n"""` }  
+            ]   
+          })  
+        });  
+  
+        const data = await response.json();  
+          
+        if (data.choices && data.choices[0].message.content) {  
+          let formattedHtml = data.choices[0].message.content;  
+          formattedHtml = formattedHtml.replace(/```html\n?/g, '').replace(/```\n?/g, '');  
+            
+          const noteBox = document.getElementById('formatted-note');  
+          const saveBtn = document.getElementById('btn-force-save');  
+            
+          noteBox.innerHTML = formattedHtml;  
+          noteBox.classList.remove('hidden-panel');  
+          saveBtn.classList.remove('hidden-panel');  
+            
+          saveToCloud(formattedHtml, rawText);  
+          pushLiveSync(rawText, formattedHtml);  
+            
+          if (data.usage) { updateUsageStats(data.usage); }  
+            
+          // Smooth scroll to output  
+          setTimeout(() => {  
+             document.getElementById('output-box-title').scrollIntoView({ behavior: 'smooth', block: 'start' });  
+          }, 150);  
+  
+          break;   
+        } else if (data.error && data.error.message) {  
+          alert(`OpenRouter API Error: ${data.error.message}`);   
+          if (data.error.message.includes("key") || data.error.code === 401) {  
+             localStorage.removeItem("openrouter_key");  
+             OPENROUTER_API_KEY = null;  
+          }  
+          break;  
+        } else {   
+          alert("Unable to process format. Unknown API response.");   
+          break;   
+        }  
+      } catch (e) {   
+        console.error(e); alert(`Network error: ${e.message}`); break;   
+      }  
+    }  
+    btn.innerText = "✨ Format with AI"; btn.disabled = false;  
+  }  
+  
+  async function saveToCloud(htmlContent, rawContent) {  
+    if (!db) return;  
+    updateSyncStatus(true);  
+    const docRef = db.collection("scribe_notes").doc(currentActiveTemplate);  
+    const newNote = {  
+      title: generateTitle(rawContent, htmlContent), html: htmlContent,  
+      raw: rawContent || "", timestamp: Date.now()  
+    };  
+    try {  
+      const doc = await docRef.get();  
+      let history = [];  
+      if (doc.exists && doc.data().history) { history = doc.data().history; }  
+      history.unshift(newNote);  
+      if (history.length > 5) history = history.slice(0, 5);  
+      await docRef.set({ history: history });  
+      updateSyncStatus(true);  
+      document.getElementById('last-updated').innerText = `Last sync: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;  
+    } catch (err) { updateSyncStatus(false); }  
+  }  
+  
+  function saveToCloudManual() {  
+    const noteHtml = document.getElementById('formatted-note').innerHTML;  
+    const rawContent = document.getElementById('raw-transcript').value;  
+    if (!noteHtml.trim() && !rawContent.trim()) { alert("No content to save."); return; }  
+    saveToCloud(noteHtml, rawContent);  
+  }  
+  
+  async function openHistoryModal() {  
+    if (!db) { alert("Database not connected."); return; }  
+    const listDiv = document.getElementById('history-list');  
+    listDiv.innerHTML = "<p style='color:#64748b; font-size:0.9rem;'>Loading history...</p>";  
+    document.getElementById('history-modal').style.display = 'flex';  
+    try {  
+      const doc = await db.collection("scribe_notes").doc(currentActiveTemplate).get();  
+      if (doc.exists && doc.data().history && doc.data().history.length > 0) {  
+        const history = doc.data().history;  
+        listDiv.innerHTML = "";  
+        history.forEach((note) => {  
+          let btn = document.createElement('button');  
+          btn.className = "history-item-btn";  
+          let dateStr = new Date(note.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});  
+          btn.innerHTML = `<span class="history-item-title">${note.title}</span><span class="history-item-time">Saved at ${dateStr}</span>`;  
+          btn.onclick = () => loadNoteFromHistory(note);  
+          listDiv.appendChild(btn);  
+        });  
+      } else { listDiv.innerHTML = "<p style='color:#64748b; font-size:0.9rem; font-style:italic;'>No saved documents found.</p>"; }  
+    } catch (err) { listDiv.innerHTML = "<p style='color:red;'>Error loading history.</p>"; }  
+  }  
+  
+  function loadNoteFromHistory(note) {  
+    document.getElementById('raw-transcript').value = note.raw || '';  
+      
+    const noteBox = document.getElementById('formatted-note');  
+    const saveBtn = document.getElementById('btn-force-save');  
+      
+    noteBox.innerHTML = note.html || '';  
+    noteBox.classList.remove('hidden-panel');  
+    saveBtn.classList.remove('hidden-panel');  
+      
+    updateWordCount();  
+    document.getElementById('history-modal').style.display = 'none';  
+      
+    pushLiveSync(note.raw || '', note.html || '');  
+  }  
+  
+  function updateSyncStatus(active) {  
+    const dot = document.getElementById('sync-dot');  
+    dot.className = "status-dot " + (active ? "active" : "error");  
+  }  
+  
+  function copyRichNote() {  
+    const noteDiv = document.getElementById('formatted-note');  
+    if (!noteDiv.innerHTML.trim()) { alert("No content to copy."); return; }  
+    const range = document.createRange();  
+    range.selectNodeContents(noteDiv);  
+    const selection = window.getSelection();  
+    selection.removeAllRanges(); selection.addRange(range);  
+    try { document.execCommand('copy'); alert("Output copied! Ready to paste into Cerner."); }   
+    catch (err) { alert("Failed to copy. Please select manually."); }  
+    selection.removeAllRanges();  
+  }  
+  
+  function copyRawNote() {  
+    const rawNote = document.getElementById('raw-transcript');  
+    if (!rawNote.value) { alert("No raw dictation to copy."); return; }  
+    navigator.clipboard.writeText(rawNote.value).then(() => { alert("Raw dictation copied."); })  
+      .catch(() => { rawNote.select(); document.execCommand('copy'); alert("Raw dictation copied."); });  
+  }  
+</script>  
+</body>  
+</html>  
