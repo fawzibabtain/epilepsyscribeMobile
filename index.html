@@ -48,6 +48,7 @@
       overscroll-behavior: none;
       -webkit-text-size-adjust: 100%;
       touch-action: none; 
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     /* Output Auto-Hide Utility Class */
@@ -72,6 +73,7 @@
       touch-action: pan-y manipulation; 
       overscroll-behavior: none;
       position: relative;
+      transition: background-color 0.3s ease;
     }
 
     .landing-wrapper {
@@ -128,7 +130,7 @@
       box-shadow: var(--shadow-soft);
       position: relative;
       overflow: hidden;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
     }
     .nav-card:active { transform: scale(0.98); }
 
@@ -228,7 +230,7 @@
     .landing-bottom-nav {
       display: flex;
       justify-content: center;
-      gap: 80px; 
+      gap: 50px; 
       width: 100%;
       padding-bottom: 10px;
     }
@@ -370,6 +372,65 @@
     }
     .history-item-title { font-weight: 700; color: var(--primary); font-size: 0.95rem; }
     .history-item-time { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+
+    /* -------------------------------------------
+       DARK MODE STYLES
+    -------------------------------------------- */
+    body.dark-mode {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    body.dark-mode #landing-view {
+      background-color: #0f172a;
+      background-image: radial-gradient(#334155 1px, transparent 1px);
+    }
+    body.dark-mode .landing-title, 
+    body.dark-mode .landing-header h2 {
+      color: #e2e8f0;
+    }
+    body.dark-mode .panel-header, 
+    body.dark-mode .panel-body,
+    body.dark-mode #instructions-section,
+    body.dark-mode #instructions-text {
+      background-color: var(--card-bg);
+      color: var(--text-main);
+    }
+    body.dark-mode textarea, 
+    body.dark-mode .rich-text-box {
+      background-color: #0f172a !important;
+      color: #f8fafc !important;
+    }
+    body.dark-mode .modal-content {
+      background-color: var(--card-bg);
+    }
+    body.dark-mode .history-item-btn {
+      background-color: #0f172a;
+      border-color: #334155;
+    }
+    body.dark-mode .history-item-title {
+      color: #e2e8f0;
+    }
+    body.dark-mode .template-btn {
+      background-color: #0f172a;
+      color: #cbd5e1;
+      border-color: #334155;
+    }
+    body.dark-mode .template-btn.active {
+      background-color: var(--primary);
+      color: white;
+    }
+    body.dark-mode .nav-icon-btn {
+      color: #e2e8f0;
+    }
+    body.dark-mode .editor-title {
+      color: #cbd5e1;
+    }
+    body.dark-mode .sync-status {
+      background-color: #0f172a;
+    }
   </style>
 </head>
 <body>
@@ -437,10 +498,13 @@
     </div>
     
     <div class="landing-bottom-nav">
-      <button class="nav-icon-btn" onclick="window.scrollTo(0,0)">
+      <button class="nav-icon-btn" onclick="window.scrollTo(0,0)" title="Scroll to top">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l8 6v12h-5v-7h-6v7H4V9l8-6z"/></svg>
       </button>
-      <button class="nav-icon-btn" onclick="window.location.reload()">
+      <button class="nav-icon-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+      <button class="nav-icon-btn" onclick="window.location.reload()" title="Refresh Page">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
       </button>
     </div>
@@ -539,11 +603,14 @@
 
 <script>
   // =========================================================
-  // PAGE LOAD FIX: Force landing view display on refresh/back
+  // PAGE LOAD FIX & DARK MODE INIT
   // =========================================================
   window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('editor-view').style.display = 'none';
     document.getElementById('landing-view').style.display = 'flex';
+    if (localStorage.getItem('scribe_dark_mode') === 'true') {
+      document.body.classList.add('dark-mode');
+    }
   });
   window.addEventListener('pageshow', (event) => {
     if (event.persisted) {
@@ -551,6 +618,12 @@
       document.getElementById('landing-view').style.display = 'flex';
     }
   });
+
+  function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('scribe_dark_mode', isDark ? 'true' : 'false');
+  }
 
   // =========================================================
   // ANTI-ZOOM JAVASCRIPT BLOCKER FOR IOS
@@ -939,9 +1012,6 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
     document.getElementById('editor-view').style.display = 'none';
     document.getElementById('landing-view').style.display = 'flex';
     
-    // NOTE: We do NOT remove scribe_local_draft here. 
-    // The draft stays safe until Format with AI or Clear is clicked.
-
     // Release screen wake lock
     inWorkspace = false;
     releaseWakeLock();
@@ -1198,7 +1268,7 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
       if (dxHtmlMatch && dxHtmlMatch[1]) {
         let candidate = dxHtmlMatch[1].replace(/\[.*?\]/g, '').trim();
         candidate = candidate.split(/[\n\r]|<br/)[0].trim();
-        candidate = candidate.replace(/\s*\([A-Z0-9\.\-]+\)/i, '').trim();
+        candidate = candidate.replace(/\s*\([A-Z0-9\.\-,\s]+\)/i, '').trim();
         if (candidate && candidate.length > 2 && !/^\[content\]/i.test(candidate)) {
           if (candidate.length > 36) candidate = candidate.substring(0, 36).trim() + "...";
           dxStr = candidate;
