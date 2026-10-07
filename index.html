@@ -360,7 +360,8 @@
     .fab-home:active { transform: scale(0.9); }
     .fab-home svg { width: 24px; height: 24px; }
 
-  /* Modal Styles */
+    /* Modal Styles */
+  
 #history-modal {
   display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(15, 23, 42, 0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(2px);
@@ -726,7 +727,10 @@
 <b>Seizure:</b> [Detailed narrative style as described. DO NOT mention seizure frequency, longest seizure freedom, EEG, or MRI findings here.]<br>
 <b>Seizure frequency:</b> [Content]<br>
 <b>Longest seizure freedom:</b> [Content]<br><br>
-<b>Risk factors:</b> [Content]<br>
+<b>Risk factors:</b> [Extract ONLY documented epileptogenic risk factors (e.g., febrile seizures, CNS infections, significant head trauma with loss of consciousness, intracranial hemorrhage, hypoxic-ischemic insult, family history of epilepsy). 
+- If positive risk factors are explicitly dictated: List only the positive ones concisely.
+- If none are dictated as present: Output strictly "No documented epileptogenic risk factors identified."
+- NEVER list seizure triggers (e.g., sleep deprivation, fasting, heat), unverified questions ("need to ask about..."), or non-epileptic conditions (e.g., vasovagal syncope) in this section.]<br>
 <b>Current medications:</b> [List using generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose, e.g., Levetiracetam (Keppra) 500 mg BID]<br>
 <b>Previous medications:</b> [List using generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose]<br>
 <b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail any abnormalities.]<br>
@@ -745,10 +749,13 @@
    - If onset is unwitnessed or undetermined: classify as "Bilateral tonic-clonic seizure" (Unknown whether focal or generalized). Never use the term "onset".
 
 2. FOCAL SEIZURES (Non-evolving to bilateral tonic-clonic):
-   - Assess consciousness operationally via awareness (recall) AND responsiveness:
-     * IMPAIRED: If either recall or responsiveness is altered, unresponsive, lapse of awareness, or confused -> "Focal impaired consciousness seizure" (inherently with observable manifestations; do not add "without observable manifestations").
-     * PRESERVED: If both recall and responsiveness are fully present/normal -> "Focal preserved consciousness seizure" + append either "with observable manifestations" (motor, speech arrest, autonomic) or "without observable manifestations" (purely subjective aura/sensory/cognitive).
-     * UNDETERMINED: If consciousness was not assessed/unwitnessed -> classify simply as "Focal seizure".
+   - CRITICAL CONSCIOUSNESS EVALUATION:
+     * Consciousness is evaluated strictly by awareness (recall/memory of the event) AND responsiveness.
+     * If the patient exhibits ANY memory deficit (e.g., amnestic, does not remember, lost time, no recollection) OR demonstrated altered responsiveness, behavioral arrest, staring, or confusion during/after the spell -> consciousness is IMPAIRED.
+     * ONLY classify as "preserved consciousness" if the dictation explicitly affirms that the patient remained fully aware, responsive, and has complete, retained memory throughout the entire episode.
+   - IMPAIRED: Output EXACTLY "Focal impaired consciousness seizure". NEVER append "with observable manifestations" or any additional words to this string.
+   - PRESERVED: Classify strictly as "Focal preserved consciousness seizure" + append either "with observable manifestations" (motor, automatisms, autonomic) or "without observable manifestations" (purely subjective sensory/cognitive aura).
+   - UNDETERMINED: If consciousness was not assessed or was unwitnessed -> classify simply as "Focal seizure".
 
 3. GENERALIZED NON-CONVULSIVE EVENTS:
    - If brief behavioral arrest/staring typical of generalized network -> classify as "Absence seizure".
@@ -788,10 +795,13 @@ Format strictly as follows:
    - If onset is unwitnessed or undetermined: classify as "Bilateral tonic-clonic seizure" (Unknown whether focal or generalized). Never use the term "onset".
 
 2. FOCAL SEIZURES (Non-evolving to bilateral tonic-clonic):
-   - Assess consciousness operationally via awareness (recall) AND responsiveness:
-     * IMPAIRED: If either recall or responsiveness is altered, unresponsive, lapse of awareness, or confused -> "Focal impaired consciousness seizure" (inherently with observable manifestations; do not add "without observable manifestations").
-     * PRESERVED: If both recall and responsiveness are fully present/normal -> "Focal preserved consciousness seizure" + append either "with observable manifestations" (motor, speech arrest, autonomic) or "without observable manifestations" (purely subjective aura/sensory/cognitive).
-     * UNDETERMINED: If consciousness was not assessed/unwitnessed -> classify simply as "Focal seizure".
+   - CRITICAL CONSCIOUSNESS EVALUATION:
+     * Consciousness is evaluated strictly by awareness (recall/memory of the event) AND responsiveness.
+     * If the patient exhibits ANY memory deficit (e.g., amnestic, does not remember, lost time, no recollection) OR demonstrated altered responsiveness, behavioral arrest, staring, or confusion during/after the spell -> consciousness is IMPAIRED.
+     * ONLY classify as "preserved consciousness" if the dictation explicitly affirms that the patient remained fully aware, responsive, and has complete, retained memory throughout the entire episode.
+   - IMPAIRED: Output EXACTLY "Focal impaired consciousness seizure". NEVER append "with observable manifestations" or any additional words to this string.
+   - PRESERVED: Classify strictly as "Focal preserved consciousness seizure" + append either "with observable manifestations" (motor, automatisms, autonomic) or "without observable manifestations" (purely subjective sensory/cognitive aura).
+   - UNDETERMINED: If consciousness was not assessed or was unwitnessed -> classify simply as "Focal seizure".
 
 3. GENERALIZED NON-CONVULSIVE EVENTS:
    - If brief behavioral arrest/staring typical of generalized network -> classify as "Absence seizure".
@@ -803,6 +813,11 @@ Format strictly as follows:
    
 <b>Medications:</b> [Use an HTML numbered list if >1. For all medications, use the generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose for each, e.g., Levetiracetam (Keppra) 500 mg BID]<br><br>
 <b>Brief history:</b><br> [Detailed narrative style reflecting all provided information. DO NOT mention any investigations (like EEG, MRI, PET) here. Reserve all investigation results strictly for the Investigations section to prevent redundancy.]<br><br>
+<b>Risk factors:</b> [Formulate a formal summary of epileptogenic risk factors covering: febrile seizures, CNS infections, significant head trauma/TBI, perinatal complications, and family history of epilepsy.
+- Positives: Detail any positive risk factors explicitly mentioned in the dictation.
+- Pertinent Negatives: For standard epilepsy risk factors not documented as positive, explicitly state them as absent/denied (e.g., "Denies history of febrile convulsions, perinatal complications, head trauma, CNS infections, or family history of seizures").
+- If no risk factors are present at all: Output a complete Pertinent Negatives sentence (e.g., "No documented epileptogenic risk factors identified; negative for history of febrile seizures, significant head trauma, CNS infections, or family history of epilepsy").
+- NEVER include acute seizure triggers (sleep deprivation, stress) or non-epileptic conditions (syncope) in this section.]<br><br>
 <b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail any abnormalities.]<br><br>
 <b>Investigations:</b> [Content - Do not include physical examination here. Compile all mentioned investigations here.]<br><br>
 <b>Treatment plans:</b><br>[Use an HTML bulleted list (<ul><li>...</li></ul>) for easy readability. For all medications, use generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose.]<br>
@@ -831,10 +846,13 @@ Format strictly as follows:
    - If onset is unwitnessed or undetermined: classify as "Bilateral tonic-clonic seizure" (Unknown whether focal or generalized). Never use the term "onset".
 
 2. FOCAL SEIZURES (Non-evolving to bilateral tonic-clonic):
-   - Assess consciousness operationally via awareness (recall) AND responsiveness:
-     * IMPAIRED: If either recall or responsiveness is altered, unresponsive, lapse of awareness, or confused -> "Focal impaired consciousness seizure" (inherently with observable manifestations; do not add "without observable manifestations").
-     * PRESERVED: If both recall and responsiveness are fully present/normal -> "Focal preserved consciousness seizure" + append either "with observable manifestations" (motor, speech arrest, autonomic) or "without observable manifestations" (purely subjective aura/sensory/cognitive).
-     * UNDETERMINED: If consciousness was not assessed/unwitnessed -> classify simply as "Focal seizure".
+   - CRITICAL CONSCIOUSNESS EVALUATION:
+     * Consciousness is evaluated strictly by awareness (recall/memory of the event) AND responsiveness.
+     * If the patient exhibits ANY memory deficit (e.g., amnestic, does not remember, lost time, no recollection) OR demonstrated altered responsiveness, behavioral arrest, staring, or confusion during/after the spell -> consciousness is IMPAIRED.
+     * ONLY classify as "preserved consciousness" if the dictation explicitly affirms that the patient remained fully aware, responsive, and has complete, retained memory throughout the entire episode.
+   - IMPAIRED: Output EXACTLY "Focal impaired consciousness seizure". NEVER append "with observable manifestations" or any additional words to this string.
+   - PRESERVED: Classify strictly as "Focal preserved consciousness seizure" + append either "with observable manifestations" (motor, automatisms, autonomic) or "without observable manifestations" (purely subjective sensory/cognitive aura).
+   - UNDETERMINED: If consciousness was not assessed or was unwitnessed -> classify simply as "Focal seizure".
 
 3. GENERALIZED NON-CONVULSIVE EVENTS:
    - If brief behavioral arrest/staring typical of generalized network -> classify as "Absence seizure".
@@ -846,6 +864,11 @@ Format strictly as follows:
    
 <b>Medications:</b> [Use a numbered list if >1. For all medications, use the generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose for each, e.g., Levetiracetam (Keppra) 500 mg BID]<br><br>
 <b>Brief history:</b><br> [Detailed narrative style, starting with patient demographics and comprehensive description of the history. Write in at least 2 distinct paragraphs separated by <br><br>. Include all additional notes in this section. DO NOT mention any investigations (like EEG, MRI, PET) here. Reserve all investigation results strictly for the Epilepsy investigations section to prevent redundancy.]<br><br>
+<b>Risk factors:</b> [Formulate a formal summary of epileptogenic risk factors covering: febrile seizures, CNS infections, significant head trauma/TBI, perinatal complications, and family history of epilepsy.
+- Positives: Detail any positive risk factors explicitly mentioned in the dictation.
+- Pertinent Negatives: For standard epilepsy risk factors not documented as positive, explicitly state them as absent/denied (e.g., "Denies history of febrile convulsions, perinatal complications, head trauma, CNS infections, or family history of seizures").
+- If no risk factors are present at all: Output a complete Pertinent Negatives sentence (e.g., "No documented epileptogenic risk factors identified; negative for history of febrile seizures, significant head trauma, CNS infections, or family history of epilepsy").
+- NEVER include acute seizure triggers (sleep deprivation, stress) or non-epileptic conditions (syncope) in this section.]<br><br>
 <b>Neurological examination:</b> [If not mentioned in dictation, state "Normal neurological examination." Otherwise, detail abnormalities.]<br><br>
 <b>Epilepsy investigations:</b> [Content - Compile all mentioned investigations here. Do not include physical examination.]<br><br>
 <b>Recommendations and plan:</b><br>[Use a detailed narrative paragraph style. DO NOT use bullet points. YOU MUST explicitly indicate the need for a referral to a comprehensive epilepsy center for epilepsy surgery evaluation, which should include admission to the Epilepsy Monitoring Unit (EMU), and further pre-epilepsy evaluation that may include a PET scan. For all medications mentioned, use generic name followed by the commercially available name in the Saudi market in parentheses, and explicitly include the dose.]<br><br>
