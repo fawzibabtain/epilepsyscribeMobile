@@ -1014,10 +1014,15 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
     document.getElementById('group-reports').classList.remove('active');
     document.getElementById(`group-${category}`).classList.add('active');
 
-    // Make both buttons visible so you can freely switch back and forth
+    // --- STRICT ISOLATION FOR NOTES OVERRIDE ---
     if (category === 'notes') {
-      document.getElementById('btn-neurology_note').style.display = '';
-      document.getElementById('btn-epilepsy_note').style.display = '';
+      if (defaultTemplate === 'neurology_note') {
+        document.getElementById('btn-neurology_note').style.display = '';
+        document.getElementById('btn-epilepsy_note').style.display = 'none';
+      } else if (defaultTemplate === 'epilepsy_note') {
+        document.getElementById('btn-neurology_note').style.display = 'none';
+        document.getElementById('btn-epilepsy_note').style.display = '';
+      }
     } else if (category === 'reports') {
       document.getElementById('btn-neurology_report').style.display = '';
       document.getElementById('btn-epilepsy_report').style.display = '';
@@ -1033,7 +1038,7 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
       document.getElementById('output-box-title').innerText = 'Formal Report Output';
     }
 
-    // --- CRITICAL FIX 1: Set the template locally FIRST to stop Live Sync from overwriting it ---
+    // --- AUTOMATIC INSTRUCTION & HIGHLIGHT SELECTION ---
     if (defaultTemplate) {
       setTemplate(defaultTemplate);
     } else {
@@ -1042,7 +1047,7 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
       document.getElementById('instructions-text').value = '⚠️ No report type selected. Please pick a report type from the buttons above before formatting.';
     }
     
-    // --- CRITICAL FIX 2: Now push to Live Sync to register the NEW state globally ---
+    // --- Push to Live Sync to register the NEW state globally ---
     pushLiveSync(savedDraft, '');
 
     document.getElementById('main-grid').scrollTo({ top: 0, behavior: 'smooth' });
@@ -1061,8 +1066,8 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
     currentActiveTemplate = type;
     document.querySelectorAll('.template-btn').forEach(btn => btn.classList.remove('active'));
     const targetBtn = document.getElementById(`btn-${type}`);
-    if (targetBtn) targetBtn.classList.add('active');
-    document.getElementById('instructions-text').value = getTemplate(type);
+    if (targetBtn) targetBtn.classList.add('active'); // Forces the blue highlight
+    document.getElementById('instructions-text').value = getTemplate(type); // Forces the strict instructions
   }
 
   let db = null;
@@ -1187,7 +1192,6 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
     try {
       const statsRef = db.collection("scribe_stats").doc("global");
       await statsRef.set({
-        total_requests: firebase.firestore.FieldValue.increment(1),
         total_requests: firebase.firestore.FieldValue.increment(1),
         total_tokens: firebase.firestore.FieldValue.increment(tTokens),
         total_cost: firebase.firestore.FieldValue.increment(cost)
@@ -1362,9 +1366,9 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
   }
 
   async function runAiStructuring() {
-    // --- CRITICAL FIX 3: Strict block if no template is picked ---
+    // --- STRICT BLOCK IF NO TEMPLATE IS PICKED ---
     if (!currentActiveTemplate) {
-      alert("STOP: You must pick a report type (Neurology Report, Epilepsy Report, etc.) from the top menu before formatting.");
+      alert("You must pick a report type (Neurology Report, Epilepsy Report, etc.) from the top menu before formatting.");
       return;
     }
 
