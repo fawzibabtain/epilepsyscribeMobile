@@ -361,22 +361,21 @@
     .fab-home svg { width: 24px; height: 24px; }
 
     /* Modal Styles */
-  
-#history-modal {
-  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(15, 23, 42, 0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(2px);
-}
-.modal-content { 
-  background: #fff; padding: 20px; border-radius: 16px; width: 400px; max-width: 90%; 
-  max-height: 75vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.2); 
-}
-.history-item-btn {
-  background: #f8fafc; border: 1px solid var(--border); padding: 12px; border-radius: 8px;
-  text-align: left; cursor: pointer; width: 100%; display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px;
-}
-.history-item-title { font-weight: 700; color: var(--primary); font-size: 0.95rem; }
-.history-item-time { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+    #history-modal {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(2px);
+    }
+    .modal-content { 
+      background: #fff; padding: 20px; border-radius: 16px; width: 400px; max-width: 90%; 
+      max-height: 75vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2); 
+    }
+    .history-item-btn {
+      background: #f8fafc; border: 1px solid var(--border); padding: 12px; border-radius: 8px;
+      text-align: left; cursor: pointer; width: 100%; display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px;
+    }
+    .history-item-title { font-weight: 700; color: var(--primary); font-size: 0.95rem; }
+    .history-item-time { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
 
     /* -------------------------------------------
        DARK MODE STYLES
@@ -424,8 +423,9 @@
       border-color: #334155;
     }
     body.dark-mode .template-btn.active {
-      background-color: var(--primary);
-      color: white;
+      background-color: #3b82f6; /* Better contrast */
+      color: #ffffff;
+      border-color: #3b82f6;
     }
     body.dark-mode .nav-icon-btn {
       color: #e2e8f0;
@@ -435,6 +435,17 @@
     }
     body.dark-mode .sync-status {
       background-color: #0f172a;
+    }
+    
+    /* Fix for text visibility in dark mode */
+    body.dark-mode .btn-secondary {
+      background-color: #1e293b;
+      color: #f8fafc;
+      border-color: #334155;
+    }
+    body.dark-mode #history-modal h3,
+    body.dark-mode #instructions-section summary {
+      color: #f8fafc !important;
     }
   </style>
 </head>
@@ -475,7 +486,7 @@
         </div>
       </div>
       
-      <div class="nav-card reports" onclick="openWorkspace('reports', 'neurology_report')">
+      <div class="nav-card reports" onclick="openWorkspace('reports', '')">
         <svg class="nav-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
           <rect x="5" y="3" width="14" height="18" rx="2"/>
           <path d="M9 8h6M9 12h6M9 16h3"/>
@@ -1030,7 +1041,14 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
       document.getElementById('output-box-title').innerText = 'Formal Report Output';
     }
 
-    setTemplate(defaultTemplate);
+    // Unselect all templates if defaultTemplate is empty (for Medical Reports)
+    if (defaultTemplate) {
+      setTemplate(defaultTemplate);
+    } else {
+      currentActiveTemplate = '';
+      document.querySelectorAll('.template-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('instructions-text').value = '';
+    }
     
     document.getElementById('main-grid').scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -1296,7 +1314,7 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
         let candidate = dxHtmlMatch[1].replace(/\[.*?\]/g, '').trim();
         candidate = candidate.split(/[\n\r]|<br/)[0].trim();
         candidate = candidate.replace(/\s*\([A-Z0-9\.\-,\s]+\)/i, '').trim();
-        if (candidate && candidate.length > 2 && !/^\[content\]/i.test(candidate)) {
+        if (candidate && candidate.length > 2 && !/^[content]/i.test(candidate)) {
           if (candidate.length > 36) candidate = candidate.substring(0, 36).trim() + "...";
           dxStr = candidate;
         }
@@ -1342,6 +1360,11 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
   }
 
   async function runAiStructuring() {
+    if (!currentActiveTemplate) {
+      alert("Please pick a report type (Neurology Report, Epilepsy Report, etc.) before formatting.");
+      return;
+    }
+
     const rawText = document.getElementById('raw-transcript').value.trim();
     const instructions = document.getElementById('instructions-text').value;
 
@@ -1443,6 +1466,7 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
   }
 
   function saveToCloudManual() {
+    if (!currentActiveTemplate) { alert("Please pick a note or report type first."); return; }
     const noteHtml = document.getElementById('formatted-note').innerHTML;
     const rawContent = document.getElementById('raw-transcript').value;
     if (!noteHtml.trim() && !rawContent.trim()) { alert("No content to save."); return; }
@@ -1450,7 +1474,9 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
   }
 
   async function openHistoryModal() {
+    if (!currentActiveTemplate) { alert("Please pick a note or report type to view its specific history."); return; }
     if (!db) { alert("Database not connected."); return; }
+    
     const listDiv = document.getElementById('history-list');
     listDiv.innerHTML = "<p style='color:#64748b; font-size:0.9rem;'>Loading history...</p>";
     document.getElementById('history-modal').style.display = 'flex';
