@@ -1400,7 +1400,7 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
             "X-Title": "KFSHRC Clinic Note Hub"
           },
           body: JSON.stringify({ 
-            model: ⁠"meta-llama/llama-3.3-70b-instruct⁠"  // STRICTLY openai/gpt-4o-mini
+            model: ⁠"meta-llama/llama-3.3-70b-instruct⁠",  // STRICTLY openai/gpt-4o-mini
             messages: [
               { role: "system", content: instructions },
               { role: "user", content: `RAW DICTATION TEXT TO FORMAT:\n"""\n${rawText}\n"""` }
