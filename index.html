@@ -500,7 +500,7 @@
     </div>
 
     <div class="powered-by">
-      Powered by DeepSeek
+      Powered by Llama AI
       <div class="stats-container">
         <span id="gen-count">Loading stats...</span> 
         <span class="more-stats">(more info)
@@ -1400,7 +1400,7 @@ Do not include: Greetings, A recipient, A signature block, A subject line, Admin
             "X-Title": "KFSHRC Clinic Note Hub"
           },
           body: JSON.stringify({ 
-            model: "deepseek/deepseek-chat", // STRICTLY openai/gpt-4o-mini
+            model: ⁠"meta-llama/llama-3.3-70b-instruct⁠"  // STRICTLY openai/gpt-4o-mini
             messages: [
               { role: "system", content: instructions },
               { role: "user", content: `RAW DICTATION TEXT TO FORMAT:\n"""\n${rawText}\n"""` }
